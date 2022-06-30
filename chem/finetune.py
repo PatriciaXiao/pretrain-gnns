@@ -80,7 +80,7 @@ def eval(args, model, device, loader):
 
 def main():
     # Training settings
-    parser = argparse.ArgumentParser(description='PyTorch implementation of pre-training of graph neural networks')
+    parser = argparse.ArgumentParser(description='PyTorch implementation of fine-tuning of graph neural networks')
     parser.add_argument('--device', type=int, default=0,
                         help='which gpu to use if any (default: 0)')
     parser.add_argument('--batch_size', type=int, default=32,

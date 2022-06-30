@@ -50,6 +50,8 @@ python pretrain_deepgraphinfomax.py --output_model_file OUTPUT_MODEL_PATH
 ```
 This will save the resulting pre-trained model to `OUTPUT_MODEL_PATH`.
 
+TODO: verify if these are trained separately or should be followed one after another
+
 #### 2. Supervised pre-training
 ```
 python pretrain_supervised.py --output_model_file OUTPUT_MODEL_PATH --input_model_file INPUT_MODEL_PATH

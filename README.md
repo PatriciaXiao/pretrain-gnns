@@ -33,7 +33,9 @@ tensorboardx              1.6
 ```
 
 ```bash
-pip install pytorch===1.0.1 torch-cluster===1.2.4 torch-geometric===1.0.3 torch-scatter===1.1.2 torch-sparse===0.2.4 torch-spline-conv===1.0.6 rdkit===2019.03.1.0 tqdm===4.31.1 tensorboardx===1.6
+pip install torch
+pip install sklearn
+pip install torch-cluster===1.2.4 torch-geometric===1.0.3 torch-scatter===1.1.2 torch-sparse===0.2.4 torch-spline-conv===1.0.6 rdkit===2022.3.3 tqdm===4.31.1 tensorboardx===1.6
 ```
 
 ## Dataset download

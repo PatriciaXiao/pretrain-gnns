@@ -351,9 +351,9 @@ class GNN_graphpred(torch.nn.Module):
         else:
             self.graph_pred_linear = torch.nn.Linear(self.mult * self.emb_dim, self.num_tasks)
 
-    def from_pretrained(self, model_file):
+    def from_pretrained(self, model_file, device):
         #self.gnn = GNN(self.num_layer, self.emb_dim, JK = self.JK, drop_ratio = self.drop_ratio)
-        self.gnn.load_state_dict(torch.load(model_file))
+        self.gnn.load_state_dict(torch.load(model_file, map_location=device))
 
     def forward(self, *argv):
         if len(argv) == 4:

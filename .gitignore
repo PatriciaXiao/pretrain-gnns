@@ -4,3 +4,5 @@ chem/chem_dataset.zip
 
 bio/dataset/*
 chem/dataset/*
+myenv/*
+*.pyc

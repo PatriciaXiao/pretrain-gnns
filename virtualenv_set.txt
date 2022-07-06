@@ -7,12 +7,10 @@ deactivate
 https://www.codegrepper.com/code-examples/shell/conda+update+package+to+specific+version
 
 conda install pytorch==1.0.1 torchvision==0.2.2 -c pytorch 
-pip install torch-cluster==1.2.4 torch-geometric==1.0.3 torch-scatter==1.1.2 torch-sparse==0.2.4 
-pip install torch-spline-conv==1.0.6 tqdm==4.31.1 tensorboardx==1.6
+pip install torch-cluster==1.2.4 torch-geometric==1.0.3 torch-scatter==1.1.2 torch-sparse==0.2.4 torch-spline-conv==1.0.6 tqdm==4.31.1 tensorboardx==1.6
 conda install -c rdkit rdkit=2019.03.1.0
 
-conda create --name gnn-prompt # in conda base environment with python==3.7 setting
-conda create --name gnn-prompt python=3.7 # elsewhere
+conda create --name gnn-prompt python=3.7
 conda activate gnn-prompt
 conda deactivate
 

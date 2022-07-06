@@ -11,6 +11,8 @@ pip install torch-cluster==1.2.4 torch-geometric==1.0.3 torch-scatter==1.1.2 tor
 pip install torch-spline-conv==1.0.6 tqdm==4.31.1 tensorboardx==1.6
 conda install -c rdkit rdkit=2019.03.1.0
 
-conda create -n graph-prompt torch torch-cluster torch-geometric torch-scatter torch-sparse torch-spline-conv rdkit tqdm tensorboardx   
-conda create --name pytorch_venv python=3.7 
-anaconda-navigator
+conda create --name gnn-prompt-env
+conda activate gnn-prompt-env
+conda deactivate
+
+conda remove --name gnn-prompt-env --all

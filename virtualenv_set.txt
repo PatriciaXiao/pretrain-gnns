@@ -11,8 +11,9 @@ pip install torch-cluster==1.2.4 torch-geometric==1.0.3 torch-scatter==1.1.2 tor
 pip install torch-spline-conv==1.0.6 tqdm==4.31.1 tensorboardx==1.6
 conda install -c rdkit rdkit=2019.03.1.0
 
-conda create --name gnn-prompt-env
-conda activate gnn-prompt-env
+conda create --name gnn-prompt # in conda base environment with python==3.7 setting
+conda create --name gnn-prompt python=3.7 # elsewhere
+conda activate gnn-prompt
 conda deactivate
 
-conda remove --name gnn-prompt-env --all
+conda remove --name gnn-prompt --all

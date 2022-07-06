@@ -2,3 +2,10 @@ python3 -m venv myenv
 cd myenv
 . bin/activate
 deactivate
+
+
+
+conda install pytorch==1.0.1 torchvision==0.2.2 -c pytorch -n torch-cluster===1.2.4 torch-geometric===1.0.3 torch-scatter===1.1.2 torch-sparse===0.2.4 torch-spline-conv===1.0.6 rdkit===2022.3.3 tqdm===4.31.1 tensorboardx===1.6
+
+conda create -n example_env numpy scipy pandas scikit-learn notebook
+anaconda-navigator

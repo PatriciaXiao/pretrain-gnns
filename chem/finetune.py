@@ -23,7 +23,7 @@ import shutil
 from tensorboardX import SummaryWriter
 
 # from util import ExamineConnectedComponents
-from util import find_largest_graph
+from util import preprocess_graphs
 
 criterion = nn.BCEWithLogitsLoss(reduction = "none")
 
@@ -32,8 +32,8 @@ def train(args, model, device, loader, optimizer):
 
     for step, batch in enumerate(tqdm(loader, desc="Iteration")):
         batch = batch.to(device)
-        print(batch.x.shape)
-        input()
+        #print(batch.x.shape)
+        #input()
         pred = model(batch.x, batch.edge_index, batch.edge_attr, batch.batch)
         y = batch.y.view(pred.shape).to(torch.float64)
 

@@ -281,7 +281,9 @@ class MaskAtom:
             self.__class__.__name__, self.num_atom_type, self.num_edge_type,
             self.mask_rate, self.mask_edge)
 
-def find_largest_graph():
+def preprocess_graphs(dataset):
+    # find largest graph in the data set 
+    # and then edit each subgraph
     pass
 
 

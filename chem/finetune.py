@@ -174,7 +174,8 @@ def main():
         raise ValueError("Invalid split option.")
 
     # print(train_dataset[0])
-    tmp_cpn = LargestConnectedComponents(train_dataset)
+    largest_comp = LargestConnectedComponents()
+    tmp_cpn = largest_comp(dataset)
     print(tmp_cpn)
     exit(0)
 

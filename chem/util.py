@@ -469,8 +469,9 @@ class LargestConnectedComponents(BaseTransform):
         num_components (int, optional): Number of largest components to keep
             (default: :obj:`1`)
     """
-    def __init__(self, num_components: int = 1):
+    def __init__(self, num_components: int = 1, component=None):
         self.num_components = num_components
+        self.component = component
 
     def __call__(self, data: Data) -> Data:
         import numpy as np

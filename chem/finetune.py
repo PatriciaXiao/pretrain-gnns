@@ -101,6 +101,8 @@ def main():
                         help='dropout ratio (default: 0.5)')
     parser.add_argument('--graph_pooling', type=str, default="mean",
                         help='graph level pooling (sum, mean, max, set2set, attention)')
+    parser.add_argument('--graph_prompting', type=str, default="feat",
+                        help='graph prompting method (feat for feature, stru for structure, both for both feature and structural)')
     parser.add_argument('--JK', type=str, default="last",
                         help='how the node features across layers are combined. last, sum, max or concat')
     parser.add_argument('--gnn_type', type=str, default="gin")
@@ -120,6 +122,13 @@ def main():
     device = torch.device("cuda:" + str(args.device)) if torch.cuda.is_available() else torch.device("cpu")
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(args.runseed)
+
+    # hyper-parameters for prompting
+    feat_prompting = stru_prompting = False
+    if args.graph_prompting in ["feat", "both"]:
+        feat_prompting = True
+    if args.graph_prompting in ["stru", "both"]:
+        stru_prompting = True
 
     #Bunch of classification tasks
     if args.dataset == "tox21":
@@ -169,7 +178,7 @@ def main():
     test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, num_workers = args.num_workers)
 
     #set up model
-    model = GNN_graphpred(args.num_layer, args.emb_dim, num_tasks, JK = args.JK, drop_ratio = args.dropout_ratio, graph_pooling = args.graph_pooling, gnn_type = args.gnn_type)
+    model = GNN_graphpred(args.num_layer, args.emb_dim, num_tasks, JK = args.JK, drop_ratio = args.dropout_ratio, graph_pooling = args.graph_pooling, gnn_type = args.gnn_type, feat_prompting=feat_prompting)
     if not args.input_model_file == "":
         model.from_pretrained(args.input_model_file, device)
     

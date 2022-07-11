@@ -219,7 +219,7 @@ class GNN(torch.nn.Module):
         node representations
 
     """
-    def __init__(self, num_layer, emb_dim, JK = "last", drop_ratio = 0, gnn_type = "gin", prompting=True):
+    def __init__(self, num_layer, emb_dim, JK = "last", drop_ratio = 0, gnn_type = "gin", feat_prompting=True):
         super(GNN, self).__init__()
         self.num_layer = num_layer
         self.drop_ratio = drop_ratio
@@ -231,9 +231,11 @@ class GNN(torch.nn.Module):
         self.x_embedding1 = torch.nn.Embedding(num_atom_type, emb_dim)
         self.x_embedding2 = torch.nn.Embedding(num_chirality_tag, emb_dim)
 
-        if prompting:
-            max_prompt_size = 10 # TODO: I don't know where to find the maximum node number in the graphs?
-            self.prompt_embed = torch.nn.Embedding(max_prompt_size, emb_dim)
+        self.feat_prompting = feat_prompting
+        if self.feat_prompting:
+            # print(num_atom_type, num_chirality_tag) # 120, 3
+            self.max_prompt_size = 100 # TODO: I don't know where to find the maximum node number in the graphs?
+            self.prompt_embed = torch.nn.Embedding(self.max_prompt_size, emb_dim)
             self.x_embedding1.requires_grad = False
             self.x_embedding2.requires_grad = False
 
@@ -268,10 +270,11 @@ class GNN(torch.nn.Module):
             raise ValueError("unmatched number of arguments.")
 
         x = self.x_embedding1(x[:,0]) + self.x_embedding2(x[:,1]) # the combination of two embedding parts makes the final embedding
+        if self.feat_prompting:
+            x += self.prompt_embed(torch.remainder(x[:,0], self.max_prompt_size).long() )
 
-        import numpy as np
-        print(self.x_embedding1.weight[:,0])
-        input()
+        #import numpy as np
+        #print(self.x_embedding1.weight[:,0])
 
         h_list = [x]
         for layer in range(self.num_layer):

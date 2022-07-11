@@ -22,7 +22,8 @@ import shutil
 
 from tensorboardX import SummaryWriter
 
-from util import ExamineConnectedComponents
+# from util import ExamineConnectedComponents
+from util import find_largest_graph
 
 criterion = nn.BCEWithLogitsLoss(reduction = "none")
 
@@ -31,6 +32,8 @@ def train(args, model, device, loader, optimizer):
 
     for step, batch in enumerate(tqdm(loader, desc="Iteration")):
         batch = batch.to(device)
+        print(batch.x.shape)
+        input()
         pred = model(batch.x, batch.edge_index, batch.edge_attr, batch.batch)
         y = batch.y.view(pred.shape).to(torch.float64)
 
@@ -174,10 +177,12 @@ def main():
         raise ValueError("Invalid split option.")
 
     # print(train_dataset[0])
+    """
     examine_components = ExamineConnectedComponents()
     tmp_cpn = examine_components(dataset)
     print(tmp_cpn)
     exit(0)
+    """
 
     train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers = args.num_workers)
     val_loader = DataLoader(valid_dataset, batch_size=args.batch_size, shuffle=False, num_workers = args.num_workers)

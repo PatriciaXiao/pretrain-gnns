@@ -281,6 +281,9 @@ class MaskAtom:
             self.__class__.__name__, self.num_atom_type, self.num_edge_type,
             self.mask_rate, self.mask_edge)
 
+def find_largest_graph():
+    pass
+
 
 if __name__ == "__main__":
     transform = NegativeEdge()
@@ -492,7 +495,7 @@ class ExamineConnectedComponents(BaseTransform):
         print(component)
         print(num_components)
         print(len(component))
-        #print(len(count))
+        #print(len(count)) # TODO: check what's wrong with it
         self.num_components = num_components # =len(count) # equivalent
         exit(0)
         subset = np.in1d(component, count.argsort()[-self.num_components:])

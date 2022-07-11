@@ -287,6 +287,8 @@ class MoleculeDataset(InMemoryDataset):
 
         if not empty:
             self.data, self.slices = torch.load(self.processed_paths[0])
+            #print(self.slices["edge_index"])
+            #exit(0)
 
 
     def get(self, idx):

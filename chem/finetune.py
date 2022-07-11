@@ -175,7 +175,7 @@ def main():
 
     # print(train_dataset[0])
     largest_comp = LargestConnectedComponents()
-    tmp_cpn = largest_comp(dataset)
+    tmp_cpn = largest_comp(train_dataset)
     print(tmp_cpn)
     exit(0)
 

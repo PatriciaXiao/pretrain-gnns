@@ -477,7 +477,10 @@ class LargestConnectedComponents(BaseTransform):
         import numpy as np
         import scipy.sparse as sp
 
-        adj = to_scipy_sparse_matrix(data.edge_index, num_nodes=data.num_nodes)
+        # adj = to_scipy_sparse_matrix(data.edge_index, num_nodes=data.num_nodes)
+        print(data.slices['x'].shape[0])
+        exit(0)
+        adj = to_scipy_sparse_matrix(data.slices["edge_index"], num_nodes=data.slices['x'].shape[0])
 
         num_components, component = sp.csgraph.connected_components(adj)
 

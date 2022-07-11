@@ -300,6 +300,7 @@ class GNN(torch.nn.Module):
             h_list = [h.unsqueeze_(0) for h in h_list]
             node_representation = torch.sum(torch.cat(h_list, dim = 0), dim = 0)[0]
 
+        # print(node_representation.shape) # torch.Size([513, 300])
         return node_representation
 
 
@@ -385,10 +386,16 @@ class GNN_graphpred(torch.nn.Module):
             x, edge_index, edge_attr, batch = data.x, data.edge_index, data.edge_attr, data.batch
         else:
             raise ValueError("unmatched number of arguments.")
-        #print(x.shape) # (433, 2)
-        #exit(0)
+        # print(x.shape) # torch.Size([513, 2])
+        # exit(0)
 
         node_representation = self.gnn(x, edge_index, edge_attr)
+
+        # print(node_representation.shape) # torch.Size([513, 300])
+
+        # print(self.pool(node_representation, batch).shape) # torch.Size([32, 300])
+        # print(self.graph_pred_linear(self.pool(node_representation, batch)).shape) # torch.Size([32, 12])
+        # exit(0)
 
         return self.graph_pred_linear(self.pool(node_representation, batch))
 

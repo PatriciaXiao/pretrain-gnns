@@ -460,7 +460,7 @@ class BaseTransform(ABC):
 
 # https://pytorch-geometric.readthedocs.io/en/latest/_modules/torch_geometric/transforms/largest_connected_components.html
 # supposed to be included as a library function in the latest versions of torch_geometric
-class LargestConnectedComponents(BaseTransform):
+class ExamineConnectedComponents(BaseTransform):
     r"""Selects the subgraph that corresponds to the
     largest connected components in the graph
     (functional name: :obj:`largest_connected_components`).
@@ -482,10 +482,16 @@ class LargestConnectedComponents(BaseTransform):
 
         num_components, component = sp.csgraph.connected_components(adj)
 
-        if num_components <= self.num_components:
-            return data
+        #if num_components <= self.num_components:
+        #    return data
 
         _, count = np.unique(component, return_counts=True)
+        print(count)
+        print(component)
+        print(num_components)
+        print(len(count))
+        self.num_components = num_components # =len(count) # equivalent
+        exit(0)
         subset = np.in1d(component, count.argsort()[-self.num_components:])
 
         # return data.subgraph(torch.from_numpy(subset).to(torch.bool)) # this doesn't work in the 

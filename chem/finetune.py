@@ -22,7 +22,7 @@ import shutil
 
 from tensorboardX import SummaryWriter
 
-from util import LargestConnectedComponents
+from util import ExamineConnectedComponents
 
 criterion = nn.BCEWithLogitsLoss(reduction = "none")
 
@@ -174,8 +174,8 @@ def main():
         raise ValueError("Invalid split option.")
 
     # print(train_dataset[0])
-    largest_comp = LargestConnectedComponents()
-    tmp_cpn = largest_comp(train_dataset)
+    examine_components = ExamineConnectedComponents()
+    tmp_cpn = examine_components(dataset)
     print(tmp_cpn)
     exit(0)
 

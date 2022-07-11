@@ -234,7 +234,7 @@ class GNN(torch.nn.Module):
         self.feat_prompting = feat_prompting
         if self.feat_prompting:
             # print(num_atom_type, num_chirality_tag) # 120, 3
-            self.max_prompt_size = 100 # TODO: I don't know where to find the maximum node number in the graphs?
+            self.max_prompt_size = 120 # TODO: I don't know where to find the maximum node number in the graphs?
             self.prompt_embed = torch.nn.Embedding(self.max_prompt_size, emb_dim)
             #self.x_embedding1.requires_grad = False
             #self.x_embedding2.requires_grad = False

@@ -469,16 +469,18 @@ class ExamineConnectedComponents(BaseTransform):
         num_components (int, optional): Number of largest components to keep
             (default: :obj:`1`)
     """
-    def __init__(self, num_components: int = 1, component=None):
+    def __init__(self, num_components: int = 1, component=list(), num_nodes=0):
         self.num_components = num_components
         self.component = component
+        self.num_nodes = num_nodes
 
     def __call__(self, data: Data) -> Data:
         import numpy as np
         import scipy.sparse as sp
 
         # adj = to_scipy_sparse_matrix(data.edge_index, num_nodes=data.num_nodes)
-        adj = to_scipy_sparse_matrix(data.data.edge_index, num_nodes=data.data.x.shape[0])
+
+        adj = to_scipy_sparse_matrix(data.data.edge_index, num_nodes=num_nodes)
 
         num_components, component = sp.csgraph.connected_components(adj)
 
@@ -489,7 +491,8 @@ class ExamineConnectedComponents(BaseTransform):
         print(count)
         print(component)
         print(num_components)
-        print(len(count))
+        print(len(component))
+        #print(len(count))
         self.num_components = num_components # =len(count) # equivalent
         exit(0)
         subset = np.in1d(component, count.argsort()[-self.num_components:])

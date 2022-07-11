@@ -12,6 +12,9 @@ from loader import mol_to_graph_data_obj_simple, \
 
 from loader import MoleculeDataset
 
+from torch_geometric.data import DataLoader
+from tqdm import tqdm
+
 
 def check_same_molecules(s1, s2):
     mol1 = AllChem.MolFromSmiles(s1)
@@ -281,9 +284,23 @@ class MaskAtom:
             self.__class__.__name__, self.num_atom_type, self.num_edge_type,
             self.mask_rate, self.mask_edge)
 
-def preprocess_graphs(dataset):
-    # find largest graph in the data set 
+def preprocess_graphs(dataset, num_workers):
+    # find largest graph in the data set by enumerating at batch size 1
+    loader = DataLoader(dataset, batch_size=1, shuffle=True, num_workers = num_workers)
+    max_size = 0 
+    min_size = 200
+    graph_sizes = list()
+    for step, batch in enumerate(tqdm(loader, desc="Preprocess")):
+        tmp_graph_nodes = batch.x.shape[0]
+        if tmp_graph_nodes > max_size:
+            max_size = tmp_graph_nodes
+        if tmp_graph_nodes < min_size:
+            min_size = tmp_graph_nodes
+        graph_sizes.append(tmp_graph_nodes)
+    print(max_size, min_size)
+    print(graph_sizes)
     # and then edit each subgraph
+    exit(0)
     pass
 
 
@@ -485,6 +502,7 @@ class ExamineConnectedComponents(BaseTransform):
 
         # adj = to_scipy_sparse_matrix(data.edge_index, num_nodes=data.num_nodes)
 
+        num_nodes = data.data.x.shape[0]
         adj = to_scipy_sparse_matrix(data.data.edge_index, num_nodes=num_nodes)
 
         num_components, component = sp.csgraph.connected_components(adj)
@@ -493,7 +511,7 @@ class ExamineConnectedComponents(BaseTransform):
         #    return data
 
         _, count = np.unique(component, return_counts=True)
-        print(count)
+        print(sorted(count))
         print(component)
         print(num_components)
         print(len(component))

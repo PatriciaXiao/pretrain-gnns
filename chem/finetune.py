@@ -22,7 +22,7 @@ import shutil
 
 from tensorboardX import SummaryWriter
 
-# from util import ExamineConnectedComponents
+from util import ExamineConnectedComponents
 from util import preprocess_graphs
 
 criterion = nn.BCEWithLogitsLoss(reduction = "none")
@@ -161,6 +161,7 @@ def main():
     dataset = MoleculeDataset("dataset/" + args.dataset, dataset=args.dataset)
 
     print(dataset)
+    preprocess_graphs(dataset, args.num_workers)
     
     if args.split == "scaffold":
         smiles_list = pd.read_csv('dataset/' + args.dataset + '/processed/smiles.csv', header=None)[0].tolist()
@@ -176,11 +177,11 @@ def main():
     else:
         raise ValueError("Invalid split option.")
 
-    # print(train_dataset[0])
     """
+    # print(train_dataset[0])
     examine_components = ExamineConnectedComponents()
     tmp_cpn = examine_components(dataset)
-    print(tmp_cpn)
+    # print(tmp_cpn)
     exit(0)
     """
 

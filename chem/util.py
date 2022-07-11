@@ -419,3 +419,76 @@ if __name__ == "__main__":
     # unique undirected edge indices, we take every 2nd edge index from list
     """
 
+import torch
+
+from torch_geometric.data import Data
+# from torch_geometric.transforms import BaseTransform
+from torch_geometric.utils import to_scipy_sparse_matrix
+
+from abc import ABC
+from typing import Any
+
+# https://pytorch-geometric.readthedocs.io/en/latest/_modules/torch_geometric/transforms/base_transform.html#BaseTransform
+class BaseTransform(ABC):
+    r"""An abstract base class for writing transforms.
+
+    Transforms are a general way to modify and customize
+    :class:`~torch_geometric.data.Data` objects, either by implicitly passing
+    them as an argument to a :class:`~torch_geometric.data.Dataset`, or by
+    applying them explicitly to individual :class:`~torch_geometric.data.Data`
+    objects.
+
+    .. code-block:: python
+
+        import torch_geometric.transforms as T
+        from torch_geometric.datasets import TUDataset
+
+        transform = T.Compose([T.ToUndirected(), T.AddSelfLoops()])
+
+        dataset = TUDataset(path, name='MUTAG', transform=transform)
+        data = dataset[0]  # Implicitly transform data on every access.
+
+        data = TUDataset(path, name='MUTAG')[0]
+        data = transform(data)  # Explicitly transform data.
+    """
+    def __call__(self, data: Any) -> Any:
+        raise NotImplementedError
+
+    def __repr__(self) -> str:
+        return f'{self.__class__.__name__}()'
+
+
+# https://pytorch-geometric.readthedocs.io/en/latest/_modules/torch_geometric/transforms/largest_connected_components.html
+# supposed to be included as a library function in the latest versions of torch_geometric
+class LargestConnectedComponents(BaseTransform):
+    r"""Selects the subgraph that corresponds to the
+    largest connected components in the graph
+    (functional name: :obj:`largest_connected_components`).
+
+    Args:
+        num_components (int, optional): Number of largest components to keep
+            (default: :obj:`1`)
+    """
+    def __init__(self, num_components: int = 1):
+        self.num_components = num_components
+
+    def __call__(self, data: Data) -> Data:
+        import numpy as np
+        import scipy.sparse as sp
+
+        adj = to_scipy_sparse_matrix(data.edge_index, num_nodes=data.num_nodes)
+
+        num_components, component = sp.csgraph.connected_components(adj)
+
+        if num_components <= self.num_components:
+            return data
+
+        _, count = np.unique(component, return_counts=True)
+        subset = np.in1d(component, count.argsort()[-self.num_components:])
+
+        return data.subgraph(torch.from_numpy(subset).to(torch.bool))
+
+    def __repr__(self) -> str:
+        return f'{self.__class__.__name__}({self.num_components})'
+
+

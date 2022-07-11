@@ -22,6 +22,8 @@ import shutil
 
 from tensorboardX import SummaryWriter
 
+from util import LargestConnectedComponents
+
 criterion = nn.BCEWithLogitsLoss(reduction = "none")
 
 def train(args, model, device, loader, optimizer):
@@ -171,7 +173,11 @@ def main():
     else:
         raise ValueError("Invalid split option.")
 
-    print(train_dataset[0])
+    # print(train_dataset[0])
+    tmp_cpn = LargestConnectedComponents(train_dataset)
+    print(tmp_cpn)
+    exit(0)
+
 
     train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers = args.num_workers)
     val_loader = DataLoader(valid_dataset, batch_size=args.batch_size, shuffle=False, num_workers = args.num_workers)

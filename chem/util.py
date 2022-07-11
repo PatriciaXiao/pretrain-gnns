@@ -478,9 +478,7 @@ class LargestConnectedComponents(BaseTransform):
         import scipy.sparse as sp
 
         # adj = to_scipy_sparse_matrix(data.edge_index, num_nodes=data.num_nodes)
-        print(data.slices['x'].shape[0])
-        exit(0)
-        adj = to_scipy_sparse_matrix(data.slices["edge_index"], num_nodes=data.slices['x'].shape[0])
+        adj = to_scipy_sparse_matrix(data.data.edge_index, num_nodes=data.data.x.shape[0])
 
         num_components, component = sp.csgraph.connected_components(adj)
 
@@ -490,7 +488,8 @@ class LargestConnectedComponents(BaseTransform):
         _, count = np.unique(component, return_counts=True)
         subset = np.in1d(component, count.argsort()[-self.num_components:])
 
-        return data.subgraph(torch.from_numpy(subset).to(torch.bool))
+        # return data.subgraph(torch.from_numpy(subset).to(torch.bool)) # this doesn't work in the 
+        return subset.shape
 
     def __repr__(self) -> str:
         return f'{self.__class__.__name__}({self.num_components})'

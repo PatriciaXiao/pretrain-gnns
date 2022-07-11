@@ -231,6 +231,9 @@ class GNN(torch.nn.Module):
         self.x_embedding1 = torch.nn.Embedding(num_atom_type, emb_dim)
         self.x_embedding2 = torch.nn.Embedding(num_chirality_tag, emb_dim)
 
+        max_prompt_size = 10 # TODO: I don't know where to find the maximum node number in the graphs?
+        self.prompt_embed = torch.nn.Embedding(max_prompt_size, emb_dim)
+
         torch.nn.init.xavier_uniform_(self.x_embedding1.weight.data)
         torch.nn.init.xavier_uniform_(self.x_embedding2.weight.data)
 
@@ -319,6 +322,9 @@ class GNN_graphpred(torch.nn.Module):
 
         self.gnn = GNN(num_layer, emb_dim, JK, drop_ratio, gnn_type = gnn_type)
 
+        for param in self.gnn.parameters():
+            param.requires_grad = False
+
         #Different kind of graph pooling
         if graph_pooling == "sum":
             self.pool = global_add_pool
@@ -353,7 +359,7 @@ class GNN_graphpred(torch.nn.Module):
 
     def from_pretrained(self, model_file, device):
         #self.gnn = GNN(self.num_layer, self.emb_dim, JK = self.JK, drop_ratio = self.drop_ratio)
-        self.gnn.load_state_dict(torch.load(model_file, map_location=device))
+        self.gnn.load_state_dict(torch.load(model_file, map_location=device), strict=False) # not strict, then we can add prompt
 
     def forward(self, *argv):
         if len(argv) == 4:

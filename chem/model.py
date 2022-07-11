@@ -236,8 +236,8 @@ class GNN(torch.nn.Module):
             # print(num_atom_type, num_chirality_tag) # 120, 3
             self.max_prompt_size = 100 # TODO: I don't know where to find the maximum node number in the graphs?
             self.prompt_embed = torch.nn.Embedding(self.max_prompt_size, emb_dim)
-            self.x_embedding1.requires_grad = False
-            self.x_embedding2.requires_grad = False
+            #self.x_embedding1.requires_grad = False
+            #self.x_embedding2.requires_grad = False
 
         torch.nn.init.xavier_uniform_(self.x_embedding1.weight.data)
         torch.nn.init.xavier_uniform_(self.x_embedding2.weight.data)
@@ -330,6 +330,7 @@ class GNN_graphpred(torch.nn.Module):
         if self.num_layer < 2:
             raise ValueError("Number of GNN layers must be greater than 1.")
 
+        self.feat_prompting = feat_prompting
         self.gnn = GNN(num_layer, emb_dim, JK, drop_ratio, gnn_type = gnn_type, feat_prompting=feat_prompting)
 
         for param in self.gnn.parameters():
@@ -370,6 +371,11 @@ class GNN_graphpred(torch.nn.Module):
     def from_pretrained(self, model_file, device):
         #self.gnn = GNN(self.num_layer, self.emb_dim, JK = self.JK, drop_ratio = self.drop_ratio)
         self.gnn.load_state_dict(torch.load(model_file, map_location=device), strict=False) # not strict, then we can add prompt
+        if self.feat_prompting:
+            # prompt_embed is the only thing to update (instead of fine-tuning)
+            for param in self.gnn.parameters():
+                param.requires_grad = False
+            self.gnn.prompt_embed.requires_grad = True
 
     def forward(self, *argv):
         if len(argv) == 4:

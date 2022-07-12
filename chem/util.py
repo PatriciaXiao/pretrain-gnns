@@ -299,7 +299,7 @@ class PreprocessPrompt:
         """
         max_size = 0 
         graph_index = torch.LongTensor(torch.empty((0,), dtype=torch.int64))
-        for step, batch in enumerate(tqdm(self.loader, desc="Count Nodes")):
+        for step, batch in enumerate(tqdm(self.loader, desc="Process Nodes")):
 
             # graph_index = torch.cat((graph_index, batch.batch+step))
             graph_index = torch.cat((graph_index, batch.batch+ torch.LongTensor(list(range(batch.batch.shape[0]))) ))

@@ -354,6 +354,8 @@ class GNN_graphpred(torch.nn.Module):
     def from_pretrained(self, model_file, device):
         #self.gnn = GNN(self.num_layer, self.emb_dim, JK = self.JK, drop_ratio = self.drop_ratio)
         self.gnn.load_state_dict(torch.load(model_file, map_location=device))
+        for param in self.gnn.parameters():
+            param.requires_grad = True
 
     def forward(self, *argv):
         if len(argv) == 4:

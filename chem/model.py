@@ -382,9 +382,9 @@ class GNN_graphpred(torch.nn.Module):
         # apply feature prompting
         if self.feat_prompting:
             # prompt_embed is the only thing to update (instead of fine-tuning)
-            for param in self.gnn.parameters():
+            for param in self.parameters(): # self.gnn.parameters():
                 param.requires_grad = False
-            self.gnn.prompt_embed.weight.requires_grad = True
+            self.gnn.prompt_embed.weight.requires_grad = True 
 
         """
         # debug

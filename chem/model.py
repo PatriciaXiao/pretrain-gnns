@@ -219,7 +219,7 @@ class GNN(torch.nn.Module):
         node representations
 
     """
-    def __init__(self, num_layer, emb_dim, JK = "last", drop_ratio = 0, gnn_type = "gin", feat_prompting=False, max_nodes=max_nodes):
+    def __init__(self, num_layer, emb_dim, JK = "last", drop_ratio = 0, gnn_type = "gin", feat_prompting=False, max_nodes=0):
         super(GNN, self).__init__()
         self.num_layer = num_layer
         self.drop_ratio = drop_ratio
@@ -268,12 +268,15 @@ class GNN(torch.nn.Module):
             x, edge_index, edge_attr, subgraph = data.x, data.edge_index, data.edge_attr, data.subgraph
         else:
             raise ValueError("unmatched number of arguments.")
-        print(subgraph)
-        exit(0)
+        #print(subgraph)
+        #print(self.prompt_embed.weight)
+        #input()
+        #exit(0)
 
         x = self.x_embedding1(x[:,0]) + self.x_embedding2(x[:,1]) # the combination of two embedding parts makes the final embedding
         if self.feat_prompting:
-            x += self.prompt_embed(torch.remainder(x[:,0], self.max_nodes).long() )
+            #x += self.prompt_embed(torch.remainder(x[:,0], self.max_nodes).long() )
+            x += self.prompt_embed(torch.remainder(subgraph, self.max_nodes).long() )
 
         #import numpy as np
         #print(self.x_embedding1.weight[:,0])

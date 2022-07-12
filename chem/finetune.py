@@ -62,7 +62,7 @@ def eval(args, model, device, loader):
         batch = batch.to(device)
 
         with torch.no_grad():
-            pred = model(batch.x, batch.edge_index, batch.edge_attr, batch.batch)
+            pred = model(batch.x, batch.edge_index, batch.edge_attr, batch.batch, batch.subgraph)
 
         y_true.append(batch.y.view(pred.shape))
         y_scores.append(pred)

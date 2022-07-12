@@ -300,10 +300,13 @@ class PreprocessPrompt:
         max_size = 0 
         graph_index = torch.LongTensor(torch.empty((0,), dtype=torch.int64))
         for step, batch in enumerate(tqdm(self.loader, desc="Count Nodes")):
-            graph_index = torch.cat((graph_index, batch.batch+step))
+
+            # graph_index = torch.cat((graph_index, batch.batch+step))
+            graph_index = torch.cat((graph_index, batch.batch+ torch.LongTensor(list(range(batch.batch.shape[0]))) ))
+
             # print(batch.__dict__)
-            # print(graph_index)
-            # input()
+            #print(graph_index)
+            #input()
             # exit(0)
             tmp_graph_nodes = batch.x.shape[0]
             if tmp_graph_nodes > max_size:

@@ -385,9 +385,9 @@ class GNN_graphpred(torch.nn.Module):
             for param in self.parameters(): # self.gnn.parameters():
                 param.requires_grad = False
             self.gnn.prompt_embed.weight.requires_grad = True 
-
-        #for param in self.parameters(): # self.gnn.parameters():
-        #    param.requires_grad = True
+        else: 
+            for param in self.gnn.parameters():
+                param.requires_grad = True
 
         debug_print = False # True
         if debug_print:
@@ -396,7 +396,7 @@ class GNN_graphpred(torch.nn.Module):
                 if param.requires_grad:
                     print("requires grad", name, param.data)
                 else:
-                    print("no grad", name, param.data)
+                    print("no grad", name) # param.data
 
     def forward(self, *argv):
         if len(argv) == 5:

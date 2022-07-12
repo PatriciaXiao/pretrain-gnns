@@ -298,12 +298,20 @@ class PreprocessPrompt:
         # find largest graph in the data set by enumerating at batch size 1
         """
         max_size = 0 
+        graph_index = torch.LongTensor(torch.empty((0,), dtype=torch.int64))
         for step, batch in enumerate(tqdm(self.loader, desc="Count Nodes")):
-            print(batch.__dict__)
-            exit(0)
+            graph_index = torch.cat((graph_index, batch.batch+step))
+            # print(batch.__dict__)
+            # print(graph_index)
+            # input()
+            # exit(0)
             tmp_graph_nodes = batch.x.shape[0]
             if tmp_graph_nodes > max_size:
                 max_size = tmp_graph_nodes
+        # add the partitioned subgraphs labels
+        self.dataset.data.subgraph = graph_index
+        self.dataset.slices["subgraph"] = self.dataset.slices["x"]
+        # exit(0)
         return max_size
 
 

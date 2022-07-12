@@ -69,6 +69,7 @@ def scaffold_split(dataset, smiles_list, task_idx=None, null_value=0,
         else:
             all_scaffolds[scaffold].append(i)
 
+
     # sort from largest to smallest sets
     all_scaffolds = {key: sorted(value) for key, value in all_scaffolds.items()}
     all_scaffold_sets = [

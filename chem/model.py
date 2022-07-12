@@ -219,7 +219,7 @@ class GNN(torch.nn.Module):
         node representations
 
     """
-    def __init__(self, num_layer, emb_dim, JK = "last", drop_ratio = 0, gnn_type = "gin", feat_prompting=False):
+    def __init__(self, num_layer, emb_dim, JK = "last", drop_ratio = 0, gnn_type = "gin", feat_prompting=False, max_nodes=max_nodes):
         super(GNN, self).__init__()
         self.num_layer = num_layer
         self.drop_ratio = drop_ratio
@@ -234,8 +234,8 @@ class GNN(torch.nn.Module):
         self.feat_prompting = feat_prompting
         if self.feat_prompting:
             # print(num_atom_type, num_chirality_tag) # 120, 3
-            self.max_prompt_size = 120 # TODO: I don't know where to find the maximum node number in the graphs?
-            self.prompt_embed = torch.nn.Embedding(self.max_prompt_size, emb_dim)
+            self.max_nodes = max_nodes
+            self.prompt_embed = torch.nn.Embedding(self.max_nodes, emb_dim)
             #self.x_embedding1.requires_grad = False
             #self.x_embedding2.requires_grad = False
 
@@ -261,17 +261,19 @@ class GNN(torch.nn.Module):
 
     #def forward(self, x, edge_index, edge_attr):
     def forward(self, *argv):
-        if len(argv) == 3:
-            x, edge_index, edge_attr = argv[0], argv[1], argv[2]
+        if len(argv) == 4:
+            x, edge_index, edge_attr, subgraph = argv[0], argv[1], argv[2], argv[3]
         elif len(argv) == 1:
             data = argv[0]
-            x, edge_index, edge_attr = data.x, data.edge_index, data.edge_attr
+            x, edge_index, edge_attr, subgraph = data.x, data.edge_index, data.edge_attr, data.subgraph
         else:
             raise ValueError("unmatched number of arguments.")
+        print(subgraph)
+        exit(0)
 
         x = self.x_embedding1(x[:,0]) + self.x_embedding2(x[:,1]) # the combination of two embedding parts makes the final embedding
         if self.feat_prompting:
-            x += self.prompt_embed(torch.remainder(x[:,0], self.max_prompt_size).long() )
+            x += self.prompt_embed(torch.remainder(x[:,0], self.max_nodes).long() )
 
         #import numpy as np
         #print(self.x_embedding1.weight[:,0])
@@ -320,7 +322,7 @@ class GNN_graphpred(torch.nn.Module):
     See https://arxiv.org/abs/1810.00826
     JK-net: https://arxiv.org/abs/1806.03536
     """
-    def __init__(self, num_layer, emb_dim, num_tasks, JK = "last", drop_ratio = 0, graph_pooling = "mean", gnn_type = "gin", feat_prompting=True):
+    def __init__(self, num_layer, emb_dim, num_tasks, JK = "last", drop_ratio = 0, graph_pooling = "mean", gnn_type = "gin", feat_prompting=True, max_nodes=0):
         super(GNN_graphpred, self).__init__()
         self.num_layer = num_layer
         self.drop_ratio = drop_ratio
@@ -332,7 +334,7 @@ class GNN_graphpred(torch.nn.Module):
             raise ValueError("Number of GNN layers must be greater than 1.")
 
         self.feat_prompting = feat_prompting
-        self.gnn = GNN(num_layer, emb_dim, JK, drop_ratio, gnn_type = gnn_type, feat_prompting=feat_prompting)
+        self.gnn = GNN(num_layer, emb_dim, JK, drop_ratio, gnn_type = gnn_type, feat_prompting=feat_prompting, max_nodes=max_nodes)
 
         for param in self.gnn.parameters():
             param.requires_grad = False
@@ -379,17 +381,17 @@ class GNN_graphpred(torch.nn.Module):
             self.gnn.prompt_embed.requires_grad = True
 
     def forward(self, *argv):
-        if len(argv) == 4:
-            x, edge_index, edge_attr, batch = argv[0], argv[1], argv[2], argv[3]
+        if len(argv) == 5:
+            x, edge_index, edge_attr, batch, subgraph = argv[0], argv[1], argv[2], argv[3], argv[4]
         elif len(argv) == 1:
             data = argv[0]
-            x, edge_index, edge_attr, batch = data.x, data.edge_index, data.edge_attr, data.batch
+            x, edge_index, edge_attr, batch, subgraph = data.x, data.edge_index, data.edge_attr, data.batch, data.subgraph
         else:
             raise ValueError("unmatched number of arguments.")
         # print(x.shape) # torch.Size([513, 2])
         # exit(0)
 
-        node_representation = self.gnn(x, edge_index, edge_attr)
+        node_representation = self.gnn(x, edge_index, edge_attr, subgraph)
 
         # print(node_representation.shape) # torch.Size([513, 300])
 

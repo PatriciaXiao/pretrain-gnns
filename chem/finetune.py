@@ -32,9 +32,11 @@ def train(args, model, device, loader, optimizer):
 
     for step, batch in enumerate(tqdm(loader, desc="Iteration")):
         batch = batch.to(device)
+        # print(batch.__dict__)
         #print(batch.x.shape)
         #input()
-        pred = model(batch.x, batch.edge_index, batch.edge_attr, batch.batch)
+        # exit(0)
+        pred = model(batch.x, batch.edge_index, batch.edge_attr, batch.batch, batch.subgraph)
         y = batch.y.view(pred.shape).to(torch.float64)
 
         #Whether y is non-null or not.
@@ -181,6 +183,9 @@ def main():
     else:
         raise ValueError("Invalid split option.")
 
+    # print(train_dataset.__dict__) # so far so good, still keeps the modified data
+    # exit(0)
+
     """
     # print(train_dataset[0])
     examine_components = ExamineConnectedComponents()
@@ -194,7 +199,7 @@ def main():
     test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, num_workers = args.num_workers)
 
     #set up model
-    model = GNN_graphpred(args.num_layer, args.emb_dim, num_tasks, JK = args.JK, drop_ratio = args.dropout_ratio, graph_pooling = args.graph_pooling, gnn_type = args.gnn_type, feat_prompting=feat_prompting)
+    model = GNN_graphpred(args.num_layer, args.emb_dim, num_tasks, JK = args.JK, drop_ratio = args.dropout_ratio, graph_pooling = args.graph_pooling, gnn_type = args.gnn_type, feat_prompting=feat_prompting, max_nodes=max_nodes)
     if not args.input_model_file == "":
         model.from_pretrained(args.input_model_file, device)
     

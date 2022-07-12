@@ -207,7 +207,7 @@ def main():
 
     #set up optimizer
     #different learning rate for different part of GNN
-    model_param_group = []
+    model_param_group = list()
     model_param_group.append({"params": model.gnn.parameters()})
     if args.graph_pooling == "attention":
         model_param_group.append({"params": model.pool.parameters(), "lr":args.lr*args.lr_scale})

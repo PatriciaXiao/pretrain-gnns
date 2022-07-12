@@ -284,24 +284,28 @@ class MaskAtom:
             self.__class__.__name__, self.num_atom_type, self.num_edge_type,
             self.mask_rate, self.mask_edge)
 
-def preprocess_graphs(dataset, num_workers):
-    # find largest graph in the data set by enumerating at batch size 1
-    loader = DataLoader(dataset, batch_size=1, shuffle=True, num_workers = num_workers)
-    max_size = 0 
-    min_size = 200
-    graph_sizes = list()
-    for step, batch in enumerate(tqdm(loader, desc="Preprocess")):
-        tmp_graph_nodes = batch.x.shape[0]
-        if tmp_graph_nodes > max_size:
-            max_size = tmp_graph_nodes
-        if tmp_graph_nodes < min_size:
-            min_size = tmp_graph_nodes
-        graph_sizes.append(tmp_graph_nodes)
-    print(max_size, min_size)
-    print(graph_sizes)
-    # and then edit each subgraph
-    exit(0)
-    pass
+class PreprocessPrompt:
+    def __init__(self, dataset, num_workers):
+        self.dataset = dataset
+        self.loader = DataLoader(dataset, batch_size=1, shuffle=True, num_workers = num_workers)
+
+        # example: how to add a field
+        #self.dataset.data.x2 = self.dataset.data.x
+        #self.dataset.slices["x2"] = self.dataset.slices["x"]
+
+    def count_nodes(self):
+        """
+        # find largest graph in the data set by enumerating at batch size 1
+        """
+        max_size = 0 
+        for step, batch in enumerate(tqdm(self.loader, desc="Count Nodes")):
+            print(batch.__dict__)
+            exit(0)
+            tmp_graph_nodes = batch.x.shape[0]
+            if tmp_graph_nodes > max_size:
+                max_size = tmp_graph_nodes
+        return max_size
+
 
 
 if __name__ == "__main__":

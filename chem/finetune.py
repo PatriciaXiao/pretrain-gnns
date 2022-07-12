@@ -22,8 +22,8 @@ import shutil
 
 from tensorboardX import SummaryWriter
 
-from util import ExamineConnectedComponents
-from util import preprocess_graphs
+# from util import ExamineConnectedComponents
+from util import PreprocessPrompt
 
 criterion = nn.BCEWithLogitsLoss(reduction = "none")
 
@@ -161,7 +161,11 @@ def main():
     dataset = MoleculeDataset("dataset/" + args.dataset, dataset=args.dataset)
 
     print(dataset)
-    preprocess_graphs(dataset, args.num_workers)
+
+    pre_processor = PreprocessPrompt(dataset, args.num_workers)
+    max_nodes = pre_processor.count_nodes()
+    #print(max_nodes)
+    #exit(0)
     
     if args.split == "scaffold":
         smiles_list = pd.read_csv('dataset/' + args.dataset + '/processed/smiles.csv', header=None)[0].tolist()

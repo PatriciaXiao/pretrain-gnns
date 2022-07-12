@@ -241,6 +241,7 @@ class GNN(torch.nn.Module):
 
         torch.nn.init.xavier_uniform_(self.x_embedding1.weight.data)
         torch.nn.init.xavier_uniform_(self.x_embedding2.weight.data)
+        torch.nn.init.xavier_uniform_(self.prompt_embed.weight.data)
 
         ###List of MLPs
         self.gnns = torch.nn.ModuleList()
@@ -377,11 +378,20 @@ class GNN_graphpred(torch.nn.Module):
     def from_pretrained(self, model_file, device):
         #self.gnn = GNN(self.num_layer, self.emb_dim, JK = self.JK, drop_ratio = self.drop_ratio)
         self.gnn.load_state_dict(torch.load(model_file, map_location=device), strict=False) # not strict, then we can add prompt
+
+        # apply feature prompting
         if self.feat_prompting:
             # prompt_embed is the only thing to update (instead of fine-tuning)
             for param in self.gnn.parameters():
                 param.requires_grad = False
-            self.gnn.prompt_embed.requires_grad = True
+            self.gnn.prompt_embed.weight.requires_grad = True
+
+        """
+        # debug
+        for name, param in self.gnn.named_parameters():
+            if param.requires_grad:
+                print(name, param.data)
+        """
 
     def forward(self, *argv):
         if len(argv) == 5:

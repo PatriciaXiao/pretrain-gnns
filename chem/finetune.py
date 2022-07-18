@@ -108,8 +108,8 @@ def main():
                         help='dropout ratio (default: 0.5)')
     parser.add_argument('--graph_pooling', type=str, default="mean",
                         help='graph level pooling (sum, mean, max, set2set, attention)')
-    parser.add_argument('--graph_prompting', type=str, default="feat",
-                        help='graph prompting method (feat for feature, stru for structure, both for both feature and structural)')
+    parser.add_argument('-prompt', '--graph_prompting', type=str, default="feat",
+                        help='graph prompting method (none for nothing, feat for feature, stru for structure, both for both feature and structural)')
     parser.add_argument('--JK', type=str, default="last",
                         help='how the node features across layers are combined. last, sum, max or concat')
     parser.add_argument('--gnn_type', type=str, default="gin")

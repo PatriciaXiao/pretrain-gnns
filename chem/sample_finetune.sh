@@ -10,3 +10,4 @@ python finetune.py --gnn_type gcn --input_model_file ./model_architecture/gcn_su
 
 python finetune.py --gnn_type gcn --dataset tox21 --filename tox21/gcn_feature_nopretrain -prompt none --eval_train
 
+python finetune.py --gnn_type gcn --dataset tox21 --filename tox21/gcn_feature_nopretrain --eval_train

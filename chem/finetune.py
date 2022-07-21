@@ -211,7 +211,8 @@ def main():
     model_param_group.append({"params": model.gnn.parameters()})
     if args.graph_pooling == "attention":
         model_param_group.append({"params": model.pool.parameters(), "lr":args.lr*args.lr_scale})
-    model_param_group.append({"params": model.graph_pred_linear.parameters(), "lr":args.lr*args.lr_scale})
+    if hasattr(model.graph_pred_linear, "parameters"):
+        model_param_group.append({"params": model.graph_pred_linear.parameters(), "lr":args.lr*args.lr_scale})
     optimizer = optim.Adam(model_param_group, lr=args.lr, weight_decay=args.decay)
     print(optimizer)
 

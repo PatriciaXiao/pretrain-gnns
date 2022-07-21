@@ -370,11 +370,21 @@ class GNN_graphpred(torch.nn.Module):
             self.mult = 2
         else:
             self.mult = 1
+
+        #print(self.num_tasks) # number of classification tasks
+        #exit(0)
         
+        """
         if self.JK == "concat":
             self.graph_pred_linear = torch.nn.Linear(self.mult * (self.num_layer + 1) * self.emb_dim, self.num_tasks)
         else:
             self.graph_pred_linear = torch.nn.Linear(self.mult * self.emb_dim, self.num_tasks)
+        """
+        self.indices = list(range(self.num_tasks))
+        self.graph_pred_linear = self.graph_pred_hard_coded
+    def graph_pred_hard_coded(self, output):
+        output = output[:,self.indices]
+        return output
 
     def from_pretrained(self, model_file, device):
         #self.gnn = GNN(self.num_layer, self.emb_dim, JK = self.JK, drop_ratio = self.drop_ratio)
@@ -415,8 +425,8 @@ class GNN_graphpred(torch.nn.Module):
 
         # print(node_representation.shape) # torch.Size([513, 300])
 
-        # print(self.pool(node_representation, batch).shape) # torch.Size([32, 300])
-        # print(self.graph_pred_linear(self.pool(node_representation, batch)).shape) # torch.Size([32, 12])
+        # print(self.pool(node_representation, batch).shape) # torch.Size([batch_size, emb_dim])
+        # print(self.graph_pred_linear(self.pool(node_representation, batch)).shape) # torch.Size([batch_size, num_task])
         # exit(0)
 
         return self.graph_pred_linear(self.pool(node_representation, batch))

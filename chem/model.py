@@ -371,25 +371,6 @@ class GNN_graphpred(torch.nn.Module):
         else:
             self.mult = 1
 
-        #print(self.num_tasks) # number of classification tasks
-        #exit(0)
-        
-        """
-        if self.JK == "concat":
-            self.graph_pred_linear = torch.nn.Linear(self.mult * (self.num_layer + 1) * self.emb_dim, self.num_tasks)
-        else:
-            self.graph_pred_linear = torch.nn.Linear(self.mult * self.emb_dim, self.num_tasks)
-        """
-        self.indices = list(range(self.num_tasks))
-        self.graph_pred_linear = self.graph_pred_hard_coded
-    def graph_pred_hard_coded(self, output):
-        output = output[:,self.indices]
-        return output
-
-    def from_pretrained(self, model_file, device):
-        #self.gnn = GNN(self.num_layer, self.emb_dim, JK = self.JK, drop_ratio = self.drop_ratio)
-        self.gnn.load_state_dict(torch.load(model_file, map_location=device), strict=False) # not strict, then we can add prompt
-
         # apply feature prompting
         if self.feat_prompting:
             # prompt_embed is the only thing to update (instead of fine-tuning)
@@ -400,6 +381,39 @@ class GNN_graphpred(torch.nn.Module):
             # PX: the code they gave us were somewhat buggy here, GNN's parameters' require_grad were all false
             for param in self.gnn.parameters():
                 param.requires_grad = True
+        
+        """
+        if self.JK == "concat":
+            self.graph_pred_linear = torch.nn.Linear(self.mult * (self.num_layer + 1) * self.emb_dim, self.num_tasks)
+        else:
+            self.graph_pred_linear = torch.nn.Linear(self.mult * self.emb_dim, self.num_tasks)
+        """
+        
+        self.indices = list(range(self.num_tasks)) #torch.LongTensor(list(range(self.num_tasks)))
+        self.graph_pred_linear = self.graph_pred_hard_coded
+    def graph_pred_hard_coded(self, output):
+        #print(output.requires_grad)
+        output = output[:,self.indices]
+        #print(output.requires_grad)
+        #exit(0)
+        return output
+
+    def from_pretrained(self, model_file, device):
+        #self.gnn = GNN(self.num_layer, self.emb_dim, JK = self.JK, drop_ratio = self.drop_ratio)
+        self.gnn.load_state_dict(torch.load(model_file, map_location=device), strict=False) # not strict, then we can add prompt
+
+        """
+        # apply feature prompting
+        if self.feat_prompting:
+            # prompt_embed is the only thing to update (instead of fine-tuning)
+            for param in self.parameters(): # self.gnn.parameters():
+                param.requires_grad = False
+            self.gnn.prompt_embed.weight.requires_grad = True 
+        else: 
+            # PX: the code they gave us were somewhat buggy here, GNN's parameters' require_grad were all false
+            for param in self.gnn.parameters():
+                param.requires_grad = True
+        """
 
         debug_print = False # True
         if debug_print:
@@ -428,6 +442,8 @@ class GNN_graphpred(torch.nn.Module):
         # print(self.pool(node_representation, batch).shape) # torch.Size([batch_size, emb_dim])
         # print(self.graph_pred_linear(self.pool(node_representation, batch)).shape) # torch.Size([batch_size, num_task])
         # exit(0)
+
+        #print(node_representation.requires_grad)
 
         return self.graph_pred_linear(self.pool(node_representation, batch))
 

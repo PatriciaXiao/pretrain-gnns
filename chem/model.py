@@ -415,14 +415,15 @@ class GNN_graphpred(torch.nn.Module):
                 param.requires_grad = True
         """
 
-        debug_print = False # True
+        debug_print = True #False # True
         if debug_print:
             # debug
             for name, param in self.gnn.named_parameters(): # self.named_parameters():
                 if param.requires_grad:
-                    print("requires grad", name, param.data)
+                    print("requires grad", name, param.data.shape)
                 else:
                     print("no grad", name) # param.data
+            exit(0)
 
     def forward(self, *argv):
         if len(argv) == 5:

@@ -110,8 +110,8 @@ def main():
                         help='graph level pooling (sum, mean, max, set2set, attention)')
     parser.add_argument('-prompt', '--graph_prompting', type=str, default="feat",
                         help='graph prompting method (none for nothing, feat for feature, stru for structure, both for both feature and structural)')
-    parser.add_argument('--JK', type=str, default="last",
-                        help='how the node features across layers are combined. last, sum, max or concat')
+    parser.add_argument('--JK', type=str, default="last", choice=["last", "sum", "max", "concat", "none"],
+                        help='how the node features across layers are combined. last, sum, max or concat; none for using another prediction method.')
     parser.add_argument('--gnn_type', type=str, default="gin")
     parser.add_argument('--dataset', type=str, default = 'tox21', help='root directory of dataset. For now, only classification.')
     parser.add_argument('--input_model_file', type=str, default = '', help='filename to read the model (if there is any)')

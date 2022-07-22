@@ -386,15 +386,16 @@ class GNN_graphpred(torch.nn.Module):
                     param.requires_grad = True
                 else:
                     param.requires_grad = False
-        """
+        
         if self.JK == "concat":
             self.graph_pred_linear = torch.nn.Linear(self.mult * (self.num_layer + 1) * self.emb_dim, self.num_tasks)
+        elif self.JK == "none":
+            self.indices = list(range(self.num_tasks)) #torch.LongTensor(list(range(self.num_tasks)))
+            self.graph_pred_linear = self.graph_pred_hard_coded
         else:
             self.graph_pred_linear = torch.nn.Linear(self.mult * self.emb_dim, self.num_tasks)
-        """
         
-        self.indices = list(range(self.num_tasks)) #torch.LongTensor(list(range(self.num_tasks)))
-        self.graph_pred_linear = self.graph_pred_hard_coded
+
     def graph_pred_hard_coded(self, output):
         #print(output.requires_grad)
         output = output[:,self.indices]

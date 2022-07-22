@@ -306,6 +306,8 @@ class GNN(torch.nn.Module):
         elif self.JK == "sum":
             h_list = [h.unsqueeze_(0) for h in h_list]
             node_representation = torch.sum(torch.cat(h_list, dim = 0), dim = 0)[0]
+        elif self.JK == "none":
+            node_representation = h_list[-1]
 
         # print(node_representation.shape) # torch.Size([513, 300])
         return node_representation

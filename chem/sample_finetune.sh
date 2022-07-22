@@ -14,3 +14,5 @@ python finetune.py --gnn_type gcn --dataset tox21 --filename tox21/gcn_feature_p
 
 python finetune.py --gnn_type gcn --input_model_file ./model_architecture/gcn_supervised.pth --dataset tox21 --filename tox21/gcn_debug --eval_train
 python finetune.py --gnn_type gcn --input_model_file ./model_architecture/gcn_supervised.pth --dataset tox21 --filename tox21/gcn_debug -prompt none --eval_train
+
+python finetune.py --gnn_type gcn --input_model_file ./model_architecture/gcn_supervised.pth --dataset tox21 --filename tox21/gcn_debug --eval_train --JK none

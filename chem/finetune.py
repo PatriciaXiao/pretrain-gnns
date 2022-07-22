@@ -48,6 +48,7 @@ def train(args, model, device, loader, optimizer):
             
         optimizer.zero_grad()
         loss = torch.sum(loss_mat)/torch.sum(is_valid)
+        print("Training Loss: ",loss.item())
         loss.backward()
 
         optimizer.step()
@@ -110,7 +111,7 @@ def main():
                         help='graph level pooling (sum, mean, max, set2set, attention)')
     parser.add_argument('-prompt', '--graph_prompting', type=str, default="feat",
                         help='graph prompting method (none for nothing, feat for feature, stru for structure, both for both feature and structural)')
-    parser.add_argument('--JK', type=str, default="last", choice=["last", "sum", "max", "concat", "none"],
+    parser.add_argument('--JK', type=str, default="last", choices=["last", "sum", "max", "concat", "none"],
                         help='how the node features across layers are combined. last, sum, max or concat; none for using another prediction method.')
     parser.add_argument('--gnn_type', type=str, default="gin")
     parser.add_argument('--dataset', type=str, default = 'tox21', help='root directory of dataset. For now, only classification.')

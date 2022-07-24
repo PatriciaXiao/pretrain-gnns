@@ -433,6 +433,10 @@ class GNN_graphpred(torch.nn.Module):
             exit(0)
 
     def forward(self, *argv):
+
+        # print(self.gnn.prompt_embed(torch.LongTensor([0.])))
+        #print(self.gnn.x_embedding1(torch.LongTensor([0.])))
+        #input()
         if len(argv) == 5:
             x, edge_index, edge_attr, batch, subgraph = argv[0], argv[1], argv[2], argv[3], argv[4]
         elif len(argv) == 1:

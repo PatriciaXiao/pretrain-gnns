@@ -30,6 +30,9 @@ criterion = nn.BCEWithLogitsLoss(reduction = "none")
 def train(args, model, device, loader, optimizer):
     model.train()
 
+    total_loss = 0
+    total_step = 0
+
     for step, batch in enumerate(tqdm(loader, desc="Iteration")):
         batch = batch.to(device)
         # print(batch.__dict__)
@@ -48,10 +51,16 @@ def train(args, model, device, loader, optimizer):
             
         optimizer.zero_grad()
         loss = torch.sum(loss_mat)/torch.sum(is_valid)
-        print("Training Loss: ",loss.item())
+        # print("Training Loss: ",loss.item())
+        total_loss += loss.item()
+        total_step += 1
+
         loss.backward()
 
         optimizer.step()
+
+    return total_loss / total_step
+
 
 
 def eval(args, model, device, loader):
@@ -233,7 +242,7 @@ def main():
     for epoch in range(1, args.epochs+1):
         print("====epoch " + str(epoch))
         
-        train(args, model, device, train_loader, optimizer)
+        train_loss = train(args, model, device, train_loader, optimizer)
 
         print("====Evaluation")
         if args.eval_train:
@@ -244,7 +253,7 @@ def main():
         val_acc = eval(args, model, device, val_loader)
         test_acc = eval(args, model, device, test_loader)
 
-        print("train: %f val: %f test: %f" %(train_acc, val_acc, test_acc))
+        print("loss: %f train: %f val: %f test: %f" %(train_loss, train_acc, val_acc, test_acc))
 
         val_acc_list.append(val_acc)
         test_acc_list.append(test_acc)

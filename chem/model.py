@@ -382,12 +382,15 @@ class GNN_graphpred(torch.nn.Module):
         else: 
             # PX: the code they gave us were somewhat buggy here, GNN's parameters' require_grad were all false
             #for param in self.gnn.parameters():
-                # param.requires_grad = True
+            for param in self.parameters():
+                param.requires_grad = True
+            """
             for name, param in self.gnn.named_parameters():
                 if "gnns.4" in name:
                     param.requires_grad = True
                 else:
                     param.requires_grad = False
+            """
         
         if self.JK == "concat":
             self.graph_pred_linear = torch.nn.Linear(self.mult * (self.num_layer + 1) * self.emb_dim, self.num_tasks)

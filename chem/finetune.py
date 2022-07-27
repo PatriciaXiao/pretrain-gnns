@@ -59,7 +59,7 @@ def train(args, model, device, loader, optimizer):
 
         optimizer.step()
 
-        break
+        #break
 
     #print(model.gnn.prompt_embed.weight)
     #input()
@@ -69,7 +69,7 @@ def train(args, model, device, loader, optimizer):
 
 
 def eval(args, model, device, loader):
-    return 0
+    #return 0
     model.eval()
     y_true = []
     y_scores = []

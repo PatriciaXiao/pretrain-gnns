@@ -59,11 +59,17 @@ def train(args, model, device, loader, optimizer):
 
         optimizer.step()
 
+        break
+
+    #print(model.gnn.prompt_embed.weight)
+    #input()
+
     return total_loss / total_step
 
 
 
 def eval(args, model, device, loader):
+    return 0
     model.eval()
     y_true = []
     y_scores = []
@@ -205,6 +211,7 @@ def main():
     """
 
     train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers = args.num_workers)
+    #train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=False, num_workers = args.num_workers)
     val_loader = DataLoader(valid_dataset, batch_size=args.batch_size, shuffle=False, num_workers = args.num_workers)
     test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, num_workers = args.num_workers)
 

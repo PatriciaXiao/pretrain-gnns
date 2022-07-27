@@ -238,7 +238,8 @@ class GNN(torch.nn.Module):
             self.prompt_embed = torch.nn.Embedding(self.max_nodes, emb_dim)
             #self.x_embedding1.requires_grad = False
             #self.x_embedding2.requires_grad = False
-            torch.nn.init.xavier_uniform_(self.prompt_embed.weight.data)
+            #torch.nn.init.xavier_uniform_(self.prompt_embed.weight.data)
+            torch.nn.init.zeros_(self.prompt_embed.weight.data)
 
         torch.nn.init.xavier_uniform_(self.x_embedding1.weight.data)
         torch.nn.init.xavier_uniform_(self.x_embedding2.weight.data)

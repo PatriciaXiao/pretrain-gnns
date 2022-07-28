@@ -268,15 +268,19 @@ def main():
         train_loss = train(args, model, device, train_loader, optimizer)
 
         print("====Evaluation")
+        msg = "loss: %f " %(train_loss)
         if args.eval_train:
             train_acc = eval(args, model, device, train_loader)
+            msg += "train: %f " %(train_acc)
         else:
             print("omit the training accuracy computation")
             train_acc = 0
         val_acc = eval(args, model, device, val_loader)
         test_acc = eval(args, model, device, test_loader)
+        msg += "val: %f test: %f" %(val_acc, test_acc)
 
-        print("loss: %f train: %f val: %f test: %f" %(train_loss, train_acc, val_acc, test_acc))
+        #print("loss: %f train: %f val: %f test: %f" %(train_loss, train_acc, val_acc, test_acc))
+        print(msg)
 
         val_acc_list.append(val_acc)
         test_acc_list.append(test_acc)

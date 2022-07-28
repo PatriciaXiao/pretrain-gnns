@@ -25,6 +25,9 @@ from tensorboardX import SummaryWriter
 # from util import ExamineConnectedComponents
 from util import PreprocessPrompt
 
+# the debug command
+# python finetune.py --gnn_type gcn --input_model_file ./model_architecture/gcn_supervised.pth --dataset tox21 --filename tox21/gcn_debug --eval_train --JK none --dropout_ratio 0.01 --lr 1 --batch_size 2
+
 criterion = nn.BCEWithLogitsLoss(reduction = "none")
 
 def train(args, model, device, loader, optimizer):
@@ -36,11 +39,19 @@ def train(args, model, device, loader, optimizer):
     for step, batch in enumerate(tqdm(loader, desc="Iteration")):
         batch = batch.to(device)
         # print(batch.__dict__)
-        #print(batch.x.shape)
-        #input()
-        # exit(0)
+
         pred = model(batch.x, batch.edge_index, batch.edge_attr, batch.batch, batch.subgraph)
+
+        # """
         y = batch.y.view(pred.shape).to(torch.float64)
+
+        """debug
+        y = 0-batch.y.view(pred.shape).to(torch.float64)
+        pred = pred[:,:1]
+        y = y[:,:1]
+        y[0,0] = -1
+        y[1,0] = 1
+        # """
 
         #Whether y is non-null or not.
         is_valid = y**2 > 0
@@ -51,7 +62,6 @@ def train(args, model, device, loader, optimizer):
             
         optimizer.zero_grad()
         loss = torch.sum(loss_mat)/torch.sum(is_valid)
-        # print("Training Loss: ",loss.item())
         total_loss += loss.item()
         total_step += 1
 
@@ -59,10 +69,7 @@ def train(args, model, device, loader, optimizer):
 
         optimizer.step()
 
-        #break
-
-    #print(model.gnn.prompt_embed.weight)
-    #input()
+        #break # debug
 
     return total_loss / total_step
 
@@ -80,8 +87,17 @@ def eval(args, model, device, loader):
         with torch.no_grad():
             pred = model(batch.x, batch.edge_index, batch.edge_attr, batch.batch, batch.subgraph)
 
+        # """
         y_true.append(batch.y.view(pred.shape))
         y_scores.append(pred)
+        """debug
+        x = 0-batch.y.view(pred.shape)[:,:1]
+        x[0,0] = -1
+        x[1,0] = 1 
+        y_true.append(x)
+        y_scores.append(pred[:,:2])
+        break
+        # """
 
     y_true = torch.cat(y_true, dim = 0).cpu().numpy()
     y_scores = torch.cat(y_scores, dim = 0).cpu().numpy()
@@ -210,8 +226,8 @@ def main():
     exit(0)
     """
 
-    train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers = args.num_workers)
-    #train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=False, num_workers = args.num_workers)
+    #train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers = args.num_workers)
+    train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=False, num_workers = args.num_workers)
     val_loader = DataLoader(valid_dataset, batch_size=args.batch_size, shuffle=False, num_workers = args.num_workers)
     test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, num_workers = args.num_workers)
 

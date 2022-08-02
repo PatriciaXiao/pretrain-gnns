@@ -169,7 +169,7 @@ def main():
     if args.graph_prompting in ["stru", "both"]:
         stru_prompting = True
 
-    #Bunch of classification tasks
+    #Bunch of classification tasks 
     if args.dataset == "tox21":
         num_tasks = 12
     elif args.dataset == "hiv":

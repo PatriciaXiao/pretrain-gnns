@@ -375,12 +375,17 @@ class GNN_graphpred(torch.nn.Module):
             self.mult = 1
         
         if self.JK == "concat":
-            self.graph_pred_linear = torch.nn.Linear(self.mult * (self.num_layer + 1) * self.emb_dim, self.num_tasks)
+            self.output_dim = self.mult * (self.num_layer + 1) * self.emb_dim
+            self.graph_pred_linear = torch.nn.Linear(self.output_dim, self.num_tasks)
         elif self.JK == "none": # TODO: to improve this # TODO: randomly k? 
-            self.indices = list(range(self.num_tasks)) #torch.LongTensor(list(range(self.num_tasks)))
+            #self.indices = list(range(self.num_tasks)) #torch.LongTensor(list(range(self.num_tasks)))
+            self.output_dim = self.mult * self.emb_dim
+            self.max_k = int(self.output_dim / self.num_tasks) # floor
+            self.indices = list(range(self.num_tasks * self.max_k))
             self.graph_pred_linear = self.graph_pred_hard_coded 
         else:
-            self.graph_pred_linear = torch.nn.Linear(self.mult * self.emb_dim, self.num_tasks)
+            self.output_dim = self.mult * self.emb_dim
+            self.graph_pred_linear = torch.nn.Linear(self.output_dim, self.num_tasks)
         
         # apply feature prompting
         if self.feat_prompting:
@@ -401,10 +406,10 @@ class GNN_graphpred(torch.nn.Module):
             """
 
     def graph_pred_hard_coded(self, output):
-        #print(output.requires_grad)
-        output = output[:,self.indices]
-        #print(output.requires_grad)
-        #exit(0)
+        print(output.requires_grad)   
+        output = torch.reshape(output[:,self.indices], (output[:,self.indices].shape[0], self.num_tasks, -1))
+        print(output.requires_grad)
+        exit(0)
         return output
 
     def from_pretrained(self, model_file, device):

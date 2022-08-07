@@ -407,7 +407,7 @@ class GNN_graphpred(torch.nn.Module):
 
     def graph_pred_hard_coded(self, output):
         #print(output.requires_grad)   
-        output = torch.sum(torch.reshape(output[:,self.indices], (output[:,self.indices].shape[0], self.num_tasks, -1)), dim=2)
+        output = torch.mean(torch.reshape(output[:,self.indices], (output[:,self.indices].shape[0], self.num_tasks, -1)), dim=2)
         #print(output.requires_grad, output.shape)
         #exit(0)
         return output

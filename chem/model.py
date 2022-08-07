@@ -376,9 +376,9 @@ class GNN_graphpred(torch.nn.Module):
         
         if self.JK == "concat":
             self.graph_pred_linear = torch.nn.Linear(self.mult * (self.num_layer + 1) * self.emb_dim, self.num_tasks)
-        elif self.JK == "none": # TODO: to improve this
+        elif self.JK == "none": # TODO: to improve this # TODO: randomly k? 
             self.indices = list(range(self.num_tasks)) #torch.LongTensor(list(range(self.num_tasks)))
-            self.graph_pred_linear = self.graph_pred_hard_coded
+            self.graph_pred_linear = self.graph_pred_hard_coded 
         else:
             self.graph_pred_linear = torch.nn.Linear(self.mult * self.emb_dim, self.num_tasks)
         

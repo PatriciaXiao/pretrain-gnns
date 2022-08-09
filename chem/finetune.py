@@ -29,6 +29,8 @@ from util import PreprocessPrompt
 # python finetune.py --gnn_type gcn --input_model_file ./model_architecture/gcn_supervised.pth --dataset tox21 --filename tox21/gcn_debug --eval_train --JK none --dropout_ratio 0.01 --lr 1 --batch_size 2
 
 criterion = nn.BCEWithLogitsLoss(reduction = "none")
+#sigmoid = nn.Sigmoid()
+#criterion = nn.BCELoss()
 
 def train(args, model, device, loader, optimizer):
     model.train()
@@ -56,7 +58,10 @@ def train(args, model, device, loader, optimizer):
         #Whether y is non-null or not.
         is_valid = y**2 > 0
         #Loss matrix
-        loss_mat = criterion(pred.double(), (y+1)/2)
+        loss_mat = criterion(pred.double(), (y+1)/2) # original version
+        #out_sigm = sigmoid(pred.double())
+        #loss_mat = criterion(out_sigm, (y+1)/2)
+        
         #loss matrix after removing null target
         loss_mat = torch.where(is_valid, loss_mat, torch.zeros(loss_mat.shape).to(loss_mat.device).to(loss_mat.dtype))
             

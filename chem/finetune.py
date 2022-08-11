@@ -61,7 +61,7 @@ def train(args, model, device, loader, optimizer):
         loss_mat = criterion(pred.double(), (y+1)/2) # original version
         #out_sigm = sigmoid(pred.double())
         #loss_mat = criterion(out_sigm, (y+1)/2)
-        
+
         #loss matrix after removing null target
         loss_mat = torch.where(is_valid, loss_mat, torch.zeros(loss_mat.shape).to(loss_mat.device).to(loss_mat.dtype))
             

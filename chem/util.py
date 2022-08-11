@@ -299,16 +299,21 @@ class PreprocessPrompt:
         """
         max_size = 0 
         graph_index = torch.LongTensor(torch.empty((0,), dtype=torch.int64))
-        for step, batch in enumerate(tqdm(self.loader, desc="Process Nodes")):
+
+        #for step, batch in enumerate(tqdm(self.loader, desc="Process Nodes")):
+        for data in self.dataset:
+            graph_index = torch.cat((graph_index, torch.arange(data.x.shape[0])))
 
             # graph_index = torch.cat((graph_index, batch.batch+step))
-            graph_index = torch.cat((graph_index, batch.batch+ torch.LongTensor(list(range(batch.batch.shape[0]))) ))
-
+            #graph_index = torch.cat((graph_index, batch.batch+ torch.LongTensor(list(range(batch.batch.shape[0]))) ))
+            # tmp_graph_nodes = batch.x.shape[0]
             # print(batch.__dict__)
             #print(graph_index)
             #input()
             # exit(0)
-            tmp_graph_nodes = batch.x.shape[0]
+
+            tmp_graph_nodes = data.x.shape[0]
+            
             if tmp_graph_nodes > max_size:
                 max_size = tmp_graph_nodes
         # add the partitioned subgraphs labels

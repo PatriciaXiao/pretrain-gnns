@@ -243,6 +243,8 @@ def main():
     
     model.to(device)
 
+    pre_processor.label_mapping(model, device, train_loader)
+
     #set up optimizer
     #different learning rate for different part of GNN
     model_param_group = list()

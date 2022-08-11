@@ -467,6 +467,19 @@ class GNN_graphpred(torch.nn.Module):
         return self.graph_pred_linear(self.pool(node_representation, batch))
 
 
+    def representation(self, *argv):
+        if len(argv) == 5:
+            x, edge_index, edge_attr, batch, subgraph = argv[0], argv[1], argv[2], argv[3], argv[4]
+        elif len(argv) == 1:
+            data = argv[0]
+            x, edge_index, edge_attr, batch, subgraph = data.x, data.edge_index, data.edge_attr, data.batch, data.subgraph
+        else:
+            raise ValueError("unmatched number of arguments.")
+        node_representation = self.gnn(x, edge_index, edge_attr, subgraph)
+
+        return self.pool(node_representation, batch)
+
+
 if __name__ == "__main__":
     pass
 

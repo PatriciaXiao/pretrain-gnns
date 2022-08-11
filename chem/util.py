@@ -322,6 +322,32 @@ class PreprocessPrompt:
         # exit(0)
         return max_size
 
+    def label_mapping(self, model, device, train_loader):
+        # clustering the labels
+        #print(self.dataset.data.x.shape)
+        #print(self.dataset.data.y.shape)
+        labels = list()
+        for data in self.dataset:
+            # n_iter = n_data: 7831 for tox21
+            labels = list(set(data.y.tolist() + labels))
+        #print(labels) # [0.0, 1.0, -1.0] for tox21
+
+        model.eval()
+
+        #d = 0
+
+        for step, batch in enumerate(tqdm(train_loader, desc="Iteration")):
+            batch = batch.to(device)
+
+            with torch.no_grad():
+                representation = model.representation(batch.x, batch.edge_index, batch.edge_attr, batch.batch, batch.subgraph)
+                #print(representation.shape)
+                #exit(0)
+                #d += representation.shape[0]
+        #print(d) # 6264
+
+        exit(0)
+
 
 
 if __name__ == "__main__":

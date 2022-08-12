@@ -335,6 +335,7 @@ class PreprocessPrompt:
         model.eval()
 
         #d = 0
+        # get the initial centers
 
         for step, batch in enumerate(tqdm(train_loader, desc="Iteration")):
             batch = batch.to(device)
@@ -346,8 +347,12 @@ class PreprocessPrompt:
                 #d += representation.shape[0]
         #print(d) # 6264
 
+        KMeans()
+
         exit(0)
 
+def KMeans():
+    pass
 
 
 if __name__ == "__main__":

@@ -243,7 +243,7 @@ def main():
     
     model.to(device)
 
-    #pre_processor.label_mapping(model, device, train_loader) # split the dimensions
+    pre_processor.label_mapping(model, device, train_loader) # split the dimensions
 
     #set up optimizer
     #different learning rate for different part of GNN

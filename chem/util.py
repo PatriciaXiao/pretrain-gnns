@@ -347,11 +347,11 @@ class PreprocessPrompt:
                 #d += representation.shape[0]
         #print(d) # 6264
 
-        KMeans()
+        Clustering()
 
         exit(0)
 
-def KMeans():
+def Clustering():
     pass
 
 

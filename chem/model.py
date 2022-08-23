@@ -393,8 +393,7 @@ class GNN_graphpred(torch.nn.Module):
             for param in self.gnn.parameters(): # self.parameters(): 
                 param.requires_grad = False
             self.gnn.prompt_embed.weight.requires_grad = True 
-        else: 
-            # PX: the code they gave us were somewhat buggy here, GNN's parameters' require_grad were all false
+        else:
             for param in self.gnn.parameters(): # self.parameters():
                 param.requires_grad = True
             """

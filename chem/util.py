@@ -318,7 +318,7 @@ class PreprocessPrompt:
                 max_size = tmp_graph_nodes
         # add the partitioned subgraphs labels
         self.dataset.data.subgraph = graph_index
-        # self.dataset.slices["subgraph"] = self.dataset.slices["x"]
+        self.dataset.slices["subgraph"] = self.dataset.slices["x"]
         # exit(0)
         return max_size
 

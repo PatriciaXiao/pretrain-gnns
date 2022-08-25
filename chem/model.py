@@ -401,6 +401,11 @@ class GNN_graphpred(torch.nn.Module):
             for param in self.gnn.parameters(): # self.parameters(): 
                 param.requires_grad = False
             self.gnn.prompt_embed.weight.requires_grad = True 
+        elif self.stru_prompting:
+            # prompt_embed is the only thing to update (instead of fine-tuning)
+            for param in self.gnn.parameters():
+                param.requires_grad = False
+            self.gnn.prompt_embed.weight.requires_grad = True 
         else:
             for param in self.gnn.parameters(): # self.parameters():
                 param.requires_grad = True # when testing the frozen mode, set it to False
@@ -436,7 +441,7 @@ class GNN_graphpred(torch.nn.Module):
                 param.requires_grad = True
         """
 
-        """
+        
         debug_print = False # True
         if debug_print:
             # debug
@@ -446,7 +451,7 @@ class GNN_graphpred(torch.nn.Module):
                 else:
                     print("no grad", name) # param.data
             exit(0)
-        """
+        
 
     def forward(self, *argv):
 

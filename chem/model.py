@@ -219,7 +219,7 @@ class GNN(torch.nn.Module):
         node representations
 
     """
-    def __init__(self, num_layer, emb_dim, JK = "last", drop_ratio = 0, gnn_type = "gin", feat_prompting=False, max_nodes=0):
+    def __init__(self, num_layer, emb_dim, JK = "last", drop_ratio = 0, gnn_type = "gin", feat_prompting=False, stru_prompting=False, max_nodes=0):
         super(GNN, self).__init__()
         self.num_layer = num_layer
         self.drop_ratio = drop_ratio
@@ -232,7 +232,8 @@ class GNN(torch.nn.Module):
         self.x_embedding2 = torch.nn.Embedding(num_chirality_tag, emb_dim)
 
         self.feat_prompting = feat_prompting
-        if self.feat_prompting:
+        self.stru_prompting = stru_prompting
+        if self.feat_prompting and not self.stru_prompting:
             # print(num_atom_type, num_chirality_tag) # 120, 3
             self.max_nodes = max_nodes
             self.prompt_embed = torch.nn.Embedding(self.max_nodes, emb_dim)
@@ -240,6 +241,12 @@ class GNN(torch.nn.Module):
             #self.x_embedding2.requires_grad = False
             #torch.nn.init.xavier_uniform_(self.prompt_embed.weight.data)
             torch.nn.init.zeros_(self.prompt_embed.weight.data)
+        elif self.stru_prompting and not self.feat_prompting:
+            self.prompt_embed = torch.nn.Embedding(1, emb_dim) # single virtual node
+            torch.nn.init.xavier_uniform_(self.prompt_embed.weight.data)
+        else:
+            assert False, "not implemented"
+
 
         torch.nn.init.xavier_uniform_(self.x_embedding1.weight.data)
         torch.nn.init.xavier_uniform_(self.x_embedding2.weight.data)
@@ -330,7 +337,7 @@ class GNN_graphpred(torch.nn.Module):
     See https://arxiv.org/abs/1810.00826
     JK-net: https://arxiv.org/abs/1806.03536
     """
-    def __init__(self, num_layer, emb_dim, num_tasks, JK = "last", drop_ratio = 0, graph_pooling = "mean", gnn_type = "gin", feat_prompting=True, max_nodes=0):
+    def __init__(self, num_layer, emb_dim, num_tasks, JK = "last", drop_ratio = 0, graph_pooling = "mean", gnn_type = "gin", feat_prompting=False, stru_prompting=True, max_nodes=0):
         super(GNN_graphpred, self).__init__()
         self.num_layer = num_layer
         self.drop_ratio = drop_ratio
@@ -342,7 +349,8 @@ class GNN_graphpred(torch.nn.Module):
             raise ValueError("Number of GNN layers must be greater than 1.")
 
         self.feat_prompting = feat_prompting
-        self.gnn = GNN(num_layer, emb_dim, JK, drop_ratio, gnn_type = gnn_type, feat_prompting=feat_prompting, max_nodes=max_nodes)
+        self.stru_prompting = stru_prompting
+        self.gnn = GNN(num_layer, emb_dim, JK, drop_ratio, gnn_type = gnn_type, feat_prompting=feat_prompting, stru_prompting=stru_prompting, max_nodes=max_nodes)
 
         for param in self.gnn.parameters():
             param.requires_grad = False

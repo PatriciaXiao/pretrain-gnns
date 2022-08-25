@@ -145,7 +145,7 @@ def main():
                         help='dropout ratio (default: 0.5)')
     parser.add_argument('--graph_pooling', type=str, default="mean",
                         help='graph level pooling (sum, mean, max, set2set, attention)')
-    parser.add_argument('-prompt', '--graph_prompting', type=str, default="feat",
+    parser.add_argument('-prompt', '--graph_prompting', type=str, default="stru",
                         help='graph prompting method (none for nothing, feat for feature, stru for structure, both for both feature and structural)')
     parser.add_argument('--JK', type=str, default="last", choices=["last", "sum", "max", "concat", "none"],
                         help='how the node features across layers are combined. last, sum, max or concat; none for using another prediction method.')
@@ -237,7 +237,7 @@ def main():
     test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, num_workers = args.num_workers)
 
     #set up model
-    model = GNN_graphpred(args.num_layer, args.emb_dim, num_tasks, JK = args.JK, drop_ratio = args.dropout_ratio, graph_pooling = args.graph_pooling, gnn_type = args.gnn_type, feat_prompting=feat_prompting, max_nodes=max_nodes)
+    model = GNN_graphpred(args.num_layer, args.emb_dim, num_tasks, JK = args.JK, drop_ratio = args.dropout_ratio, graph_pooling = args.graph_pooling, gnn_type = args.gnn_type, feat_prompting=feat_prompting, stru_prompting=stru_prompting, max_nodes=max_nodes)
     if not args.input_model_file == "":
         model.from_pretrained(args.input_model_file, device)
     

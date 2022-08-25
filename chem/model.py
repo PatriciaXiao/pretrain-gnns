@@ -428,6 +428,7 @@ class GNN_graphpred(torch.nn.Module):
                 param.requires_grad = True
         """
 
+        """
         debug_print = False # True
         if debug_print:
             # debug
@@ -437,6 +438,7 @@ class GNN_graphpred(torch.nn.Module):
                 else:
                     print("no grad", name) # param.data
             exit(0)
+        """
 
     def forward(self, *argv):
 

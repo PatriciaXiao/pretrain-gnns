@@ -202,7 +202,7 @@ def main():
     print(dataset)
 
     pre_processor = PreprocessPrompt(dataset, args.num_workers)
-    max_nodes = pre_processor.count_nodes()
+    max_nodes = pre_processor.process()
     #print(max_nodes)
     #exit(0)
     

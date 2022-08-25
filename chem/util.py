@@ -293,9 +293,10 @@ class PreprocessPrompt:
         #self.dataset.data.x2 = self.dataset.data.x
         #self.dataset.slices["x2"] = self.dataset.slices["x"]
 
-    def count_nodes(self):
+    def process(self):
         """
-        # find largest graph in the data set by enumerating at batch size 1
+        # Return values :
+        #       max_size: find largest graph size in the data set
         """
         max_size = 0 
         graph_index = torch.LongTensor(torch.empty((0,), dtype=torch.int64))

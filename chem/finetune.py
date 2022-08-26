@@ -179,8 +179,8 @@ def main():
         num_tasks = 12
     elif args.dataset == "hiv":
         num_tasks = 1
-    elif args.dataset == "pcba": # can't load, can't run
-        num_tasks = 128
+    #elif args.dataset == "pcba": # can't load, can't run
+    #    num_tasks = 128
     elif args.dataset == "muv":
         num_tasks = 17
     elif args.dataset == "bace":

@@ -408,7 +408,7 @@ class GNN_graphpred(torch.nn.Module):
             self.gnn.prompt_embed.weight.requires_grad = True 
         else:
             for param in self.gnn.parameters(): # self.parameters():
-                param.requires_grad = True # when testing the frozen mode, set it to False
+                param.requires_grad = False #True # when testing the frozen mode, set it to False
             """
             for name, param in self.gnn.named_parameters():
                 if "gnns.4" in name:

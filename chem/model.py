@@ -244,7 +244,7 @@ class GNN(torch.nn.Module):
         elif self.stru_prompting and not self.feat_prompting:
             self.prompt_embed = torch.nn.Embedding(1, emb_dim) # single virtual node
             torch.nn.init.xavier_uniform_(self.prompt_embed.weight.data)
-        else:
+        elif self.stru_prompting and self.feat_prompting:
             assert False, "not implemented"
 
 

@@ -284,7 +284,7 @@ class GNN(torch.nn.Module):
         #exit(0)
 
         x = self.x_embedding1(x[:,0]) + self.x_embedding2(x[:,1]) # the combination of two embedding parts makes the final embedding
-        if self.feat_prompting:
+        if self.feat_prompting and not self.stru_prompting:
             #x += self.prompt_embed(torch.remainder(x[:,0], self.max_nodes).long() )
             x += self.prompt_embed(torch.remainder(subgraph, self.max_nodes).long() )
 
@@ -396,12 +396,12 @@ class GNN_graphpred(torch.nn.Module):
             self.graph_pred_linear = torch.nn.Linear(self.output_dim, self.num_tasks)
         
         # apply feature prompting
-        if self.feat_prompting:
+        if self.feat_prompting and not self.stru_prompting:
             # prompt_embed is the only thing to update (instead of fine-tuning)
             for param in self.gnn.parameters(): # self.parameters(): 
                 param.requires_grad = False
             self.gnn.prompt_embed.weight.requires_grad = True 
-        elif self.stru_prompting:
+        elif self.stru_prompting and not self.feat_prompting:
             # prompt_embed is the only thing to update (instead of fine-tuning)
             for param in self.gnn.parameters():
                 param.requires_grad = False

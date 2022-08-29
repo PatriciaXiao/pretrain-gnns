@@ -233,6 +233,7 @@ class GNN(torch.nn.Module):
 
         self.feat_prompting = feat_prompting
         self.stru_prompting = stru_prompting
+        self.node_prompt_num = 0
         if self.feat_prompting and not self.stru_prompting:
             # print(num_atom_type, num_chirality_tag) # 120, 3
             self.max_nodes = max_nodes
@@ -244,6 +245,7 @@ class GNN(torch.nn.Module):
         elif self.stru_prompting and not self.feat_prompting:
             self.prompt_embed = torch.nn.Embedding(1, emb_dim) # single virtual node
             torch.nn.init.xavier_uniform_(self.prompt_embed.weight.data)
+            self.node_prompt_num = 1
         #elif self.stru_prompting and self.feat_prompting:
         #    assert False, "not implemented"
 
@@ -287,7 +289,7 @@ class GNN(torch.nn.Module):
         if self.feat_prompting and not self.stru_prompting:
             #x += self.prompt_embed(torch.remainder(x[:,0], self.max_nodes).long() )
             x += self.prompt_embed(torch.remainder(subgraph, self.max_nodes).long() )
-        elif self.stru_prompting and not self.feat_prompting:
+        elif self.node_prompt_num > 0:
             ### virtual node embeddings for graphs
             # virtualnode_embedding = self.prompt_embed(torch.zeros(x.shape[0]).to(edge_index.dtype).to(x.device))
             # virtualnode_embedding = self.prompt_embed(torch.zeros(x.shape[0]).to(edge_index.dtype).to(x.device))

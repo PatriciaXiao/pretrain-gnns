@@ -271,11 +271,11 @@ class GNN(torch.nn.Module):
 
     #def forward(self, x, edge_index, edge_attr):
     def forward(self, *argv):
-        if len(argv) == 4:
-            x, edge_index, edge_attr, subgraph = argv[0], argv[1], argv[2], argv[3]
+        if len(argv) == 5:
+            x, edge_index, edge_attr, batch, subgraph = argv[0], argv[1], argv[2], argv[3], argv[4]
         elif len(argv) == 1:
             data = argv[0]
-            x, edge_index, edge_attr, subgraph = data.x, data.edge_index, data.edge_attr, data.subgraph
+            x, edge_index, edge_attr, batch, subgraph = data.x, data.edge_index, data.edge_attr, data.batch, data.subgraph
         else:
             raise ValueError("unmatched number of arguments.")
         #print(subgraph)
@@ -289,15 +289,32 @@ class GNN(torch.nn.Module):
             x += self.prompt_embed(torch.remainder(subgraph, self.max_nodes).long() )
         elif self.stru_prompting and not self.feat_prompting:
             ### virtual node embeddings for graphs
-            virtualnode_embedding = self.prompt_embed(torch.zeros(x.shape[0]).to(edge_index.dtype).to(x.device))
+            # virtualnode_embedding = self.prompt_embed(torch.zeros(x.shape[0]).to(edge_index.dtype).to(x.device))
+            # virtualnode_embedding = self.prompt_embed(torch.zeros(x.shape[0]).to(edge_index.dtype).to(x.device))
+            virtualnode_embedding = self.prompt_embed(torch.zeros(batch[-1].item() + 1).to(edge_index.dtype).to(edge_index.device))
             #print(virtualnode_embedding)
 
         #import numpy as np
         #print(self.x_embedding1.weight[:,0])
 
+        """
         h_list = [x]
         for layer in range(self.num_layer):
-            h = self.gnns[layer](h_list[layer], edge_index, edge_attr) + virtualnode_embedding #?
+            h = self.gnns[layer](h_list[layer], edge_index, edge_attr)
+            h = self.batch_norms[layer](h)
+            #h = F.dropout(F.relu(h), self.drop_ratio, training = self.training)
+            if layer == self.num_layer - 1:
+                #remove relu for the last layer
+                h = F.dropout(h, self.drop_ratio, training = self.training)
+            else:
+                h = F.dropout(F.relu(h), self.drop_ratio, training = self.training)
+            h_list.append(h)
+        """
+
+        h_list = [x]
+        for layer in range(self.num_layer):
+
+            h = self.gnns[layer](h_list[layer], edge_index, edge_attr) + virtualnode_embedding[batch] #?
             h = self.batch_norms[layer](h)
             #h = F.dropout(F.relu(h), self.drop_ratio, training = self.training)
             if layer == self.num_layer - 1:
@@ -307,6 +324,14 @@ class GNN(torch.nn.Module):
                 h = F.dropout(F.relu(h), self.drop_ratio, training = self.training)
             h_list.append(h)
 
+            # virtualnode?
+            ### update the virtual nodes
+            if layer < self.num_layer - 1:
+                ### add message from graph nodes to virtual nodes
+                virtualnode_embedding = global_add_pool(h, batch) + virtualnode_embedding
+                ### transform virtual nodes using MLP
+
+                
         ### Different implementations of Jk-concat
         if self.JK == "concat":
             node_representation = torch.cat(h_list, dim = 1)
@@ -477,7 +502,7 @@ class GNN_graphpred(torch.nn.Module):
         # print(x.shape) # torch.Size([513, 2])
         # exit(0)
 
-        node_representation = self.gnn(x, edge_index, edge_attr, subgraph)
+        node_representation = self.gnn(x, edge_index, edge_attr, batch, subgraph)
 
         # print(node_representation.shape) # torch.Size([513, 300])
 
@@ -498,7 +523,7 @@ class GNN_graphpred(torch.nn.Module):
             x, edge_index, edge_attr, batch, subgraph = data.x, data.edge_index, data.edge_attr, data.batch, data.subgraph
         else:
             raise ValueError("unmatched number of arguments.")
-        node_representation = self.gnn(x, edge_index, edge_attr, subgraph)
+        node_representation = self.gnn(x, edge_index, edge_attr, batch, subgraph)
 
         return self.pool(node_representation, batch)
 

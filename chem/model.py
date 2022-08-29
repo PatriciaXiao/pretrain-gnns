@@ -324,11 +324,11 @@ class GNN(torch.nn.Module):
                 h = F.dropout(F.relu(h), self.drop_ratio, training = self.training)
             h_list.append(h)
 
-            # virtualnode?
             ### update the virtual nodes
             if layer < self.num_layer - 1:
                 ### add message from graph nodes to virtual nodes
-                virtualnode_embedding = global_add_pool(h, batch) + virtualnode_embedding
+                s = 0.5
+                virtualnode_embedding = (1-s) * global_mean_pool(h, batch) + s * virtualnode_embedding
                 ### transform virtual nodes using MLP
 
                 

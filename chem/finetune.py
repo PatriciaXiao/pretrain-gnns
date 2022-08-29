@@ -249,6 +249,7 @@ def main():
     #different learning rate for different part of GNN
     model_param_group = list()
     model_param_group.append({"params": model.gnn.parameters()})
+    #model_param_group.append({"params": model.gnn.parameters(), "lr":0.01}) # in structure learning we need higher lr here
     if args.graph_pooling == "attention":
         model_param_group.append({"params": model.pool.parameters(), "lr":args.lr*args.lr_scale})
     if hasattr(model.graph_pred_linear, "parameters"):

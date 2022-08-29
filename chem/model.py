@@ -348,8 +348,10 @@ class GNN_graphpred(torch.nn.Module):
         if self.num_layer < 2:
             raise ValueError("Number of GNN layers must be greater than 1.")
 
-        self.feat_prompting = feat_prompting
-        self.stru_prompting = stru_prompting
+        self.feat_prompting = feat_prompting #and not stru_prompting
+        self.stru_prompting = stru_prompting #and not feat_prompting
+        self.freezeGnnParam = feat_prompting and stru_prompting
+        self.finetuneGnnMod = not feat_prompting and not stru_prompting
         self.gnn = GNN(num_layer, emb_dim, JK, drop_ratio, gnn_type = gnn_type, feat_prompting=feat_prompting, stru_prompting=stru_prompting, max_nodes=max_nodes)
 
         for param in self.gnn.parameters():

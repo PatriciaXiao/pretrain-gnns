@@ -289,18 +289,15 @@ class GNN(torch.nn.Module):
             x += self.prompt_embed(torch.remainder(subgraph, self.max_nodes).long() )
         elif self.stru_prompting and not self.feat_prompting:
             ### virtual node embeddings for graphs
-            print(torch.zeros(x.shape[0]).to(edge_index.dtype).to(x.device))
             virtualnode_embedding = self.prompt_embed(torch.zeros(x.shape[0]).to(edge_index.dtype).to(x.device))
-            print(virtualnode_embedding)
-            print("edit here")
-            exit(0)
+            #print(virtualnode_embedding)
 
         #import numpy as np
         #print(self.x_embedding1.weight[:,0])
 
         h_list = [x]
         for layer in range(self.num_layer):
-            h = self.gnns[layer](h_list[layer], edge_index, edge_attr)
+            h = self.gnns[layer](h_list[layer], edge_index, edge_attr) + virtualnode_embedding #?
             h = self.batch_norms[layer](h)
             #h = F.dropout(F.relu(h), self.drop_ratio, training = self.training)
             if layer == self.num_layer - 1:

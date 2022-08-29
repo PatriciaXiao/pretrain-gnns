@@ -314,7 +314,7 @@ class GNN(torch.nn.Module):
         h_list = [x]
         for layer in range(self.num_layer):
 
-            h = self.gnns[layer](h_list[layer], edge_index, edge_attr) + virtualnode_embedding[batch] #?
+            h = self.gnns[layer](h_list[layer], edge_index, edge_attr) + virtualnode_embedding[batch]
             h = self.batch_norms[layer](h)
             #h = F.dropout(F.relu(h), self.drop_ratio, training = self.training)
             if layer == self.num_layer - 1:

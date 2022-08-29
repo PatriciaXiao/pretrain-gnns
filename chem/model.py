@@ -287,6 +287,9 @@ class GNN(torch.nn.Module):
         if self.feat_prompting and not self.stru_prompting:
             #x += self.prompt_embed(torch.remainder(x[:,0], self.max_nodes).long() )
             x += self.prompt_embed(torch.remainder(subgraph, self.max_nodes).long() )
+        elif self.stru_prompting and not self.feat_prompting:
+            print("edit here")
+            exit(0)
 
         #import numpy as np
         #print(self.x_embedding1.weight[:,0])

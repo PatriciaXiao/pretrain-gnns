@@ -234,6 +234,7 @@ class GNN(torch.nn.Module):
         self.feat_prompting = feat_prompting
         self.stru_prompting = stru_prompting
         self.node_prompt_num = 0
+        self.gnn.mlp_virtualnode_list = None
         if self.feat_prompting and not self.stru_prompting:
             # print(num_atom_type, num_chirality_tag) # 120, 3
             self.max_nodes = max_nodes
@@ -451,7 +452,9 @@ class GNN_graphpred(torch.nn.Module):
             # prompt_embed is the only thing to update (instead of fine-tuning)
             for param in self.gnn.parameters():
                 param.requires_grad = False
-            self.gnn.prompt_embed.weight.requires_grad = True 
+            self.gnn.prompt_embed.weight.requires_grad = True
+            if self.gnn.node_prompt_num > 0 and self.gnn.mlp_virtualnode_list:
+                self.gnn.mlp_virtualnode_list.requires_grad = True
         elif not self.feat_prompting and not self.stru_prompting:
             for param in self.gnn.parameters(): # self.parameters():
                 param.requires_grad = True # when testing the frozen mode, set it to False

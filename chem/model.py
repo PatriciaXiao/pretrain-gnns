@@ -234,7 +234,7 @@ class GNN(torch.nn.Module):
         self.feat_prompting = feat_prompting
         self.stru_prompting = stru_prompting
         self.node_prompt_num = 0
-        self.gnn.mlp_virtualnode_list = None
+        self.mlp_virtualnode_list = None
         if self.feat_prompting and not self.stru_prompting:
             # print(num_atom_type, num_chirality_tag) # 120, 3
             self.max_nodes = max_nodes

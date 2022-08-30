@@ -245,7 +245,7 @@ class GNN(torch.nn.Module):
             #torch.nn.init.xavier_uniform_(self.prompt_embed.weight.data)
             torch.nn.init.zeros_(self.prompt_embed.weight.data)
         elif self.stru_prompting and not self.feat_prompting:
-            self.node_prompt_num = 2 #1
+            self.node_prompt_num = 10 #1
             self.prompt_embed = torch.nn.Embedding(self.node_prompt_num, emb_dim) # single virtual node
             torch.nn.init.xavier_uniform_(self.prompt_embed.weight.data)
             
@@ -338,13 +338,16 @@ class GNN(torch.nn.Module):
                     s = 0.5
                     all_embeddings[i] = (1-s) * global_mean_pool(h, batch) + s * all_embeddings[i]
 
+                    """
+                    # sample code of applying softmax
                     from torch_geometric.utils import softmax
                     score = softmax(h[:,0], batch)
-
                     print(score)
                     print(batch)
-                    print(global_add_pool(score, batch))
+                    print(global_add_pool(score, batch)) # correct
                     exit(0)
+                    """
+
                     ### transform virtual nodes using MLP
                     # residual? virtualnode_embedding + 
                     all_embeddings[i] = F.dropout(self.mlp_virtualnode_list[layer](all_embeddings[i]), self.drop_ratio, training = self.training)

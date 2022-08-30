@@ -292,7 +292,6 @@ class GNN(torch.nn.Module):
         elif self.node_prompt_num > 0:
             ### virtual node embeddings for graphs
             # virtualnode_embedding = self.prompt_embed(torch.zeros(x.shape[0]).to(edge_index.dtype).to(x.device))
-            # virtualnode_embedding = self.prompt_embed(torch.zeros(x.shape[0]).to(edge_index.dtype).to(x.device))
             virtualnode_embedding = self.prompt_embed(torch.zeros(batch[-1].item() + 1).to(edge_index.dtype).to(edge_index.device))
             #print(virtualnode_embedding)
 
@@ -316,7 +315,9 @@ class GNN(torch.nn.Module):
         h_list = [x]
         for layer in range(self.num_layer):
 
-            h = self.gnns[layer](h_list[layer], edge_index, edge_attr) + virtualnode_embedding[batch]
+            h = self.gnns[layer](h_list[layer], edge_index, edge_attr) 
+            if self.node_prompt_num > 0:
+                h = h + virtualnode_embedding[batch]
             h = self.batch_norms[layer](h)
             #h = F.dropout(F.relu(h), self.drop_ratio, training = self.training)
             if layer == self.num_layer - 1:
@@ -327,7 +328,7 @@ class GNN(torch.nn.Module):
             h_list.append(h)
 
             ### update the virtual nodes
-            if layer < self.num_layer - 1:
+            if self.node_prompt_num > 0 and layer < self.num_layer - 1:
                 ### add message from graph nodes to virtual nodes
                 s = 0.5
                 virtualnode_embedding = (1-s) * global_mean_pool(h, batch) + s * virtualnode_embedding

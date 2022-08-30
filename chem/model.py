@@ -256,6 +256,11 @@ class GNN(torch.nn.Module):
                 self.mlp_virtualnode_list.append(torch.nn.Sequential(torch.nn.Linear(emb_dim, 2*emb_dim), torch.nn.BatchNorm1d(2*emb_dim), torch.nn.ReLU(), \
                                                     torch.nn.Linear(2*emb_dim, emb_dim), torch.nn.BatchNorm1d(emb_dim), torch.nn.ReLU()))
 
+            self.mlp_softmax_list = torch.nn.ModuleList()
+            for layer in range(self.node_prompt_num):#range(num_layer - 1): # prompt specific
+                self.mlp_softmax_list.append(torch.nn.Sequential(torch.nn.Linear(emb_dim, 2*emb_dim), torch.nn.BatchNorm1d(2*emb_dim), torch.nn.ReLU(), \
+                                                    torch.nn.Linear(2*emb_dim, emb_dim), torch.nn.BatchNorm1d(emb_dim), torch.nn.ReLU()))
+
         #elif self.stru_prompting and self.feat_prompting:
         #    assert False, "not implemented"
 
@@ -336,6 +341,11 @@ class GNN(torch.nn.Module):
                 for i in range(self.node_prompt_num):
                     ### add message from graph nodes to virtual nodes
                     s = 0.5
+                    
+                    # all_embeddings[i] = (1-s) * global_mean_pool(h, batch) + s * all_embeddings[i]
+
+                    score = self.mlp_softmax_list[layer](all_embeddings[i])
+
                     all_embeddings[i] = (1-s) * global_mean_pool(h, batch) + s * all_embeddings[i]
 
                     """

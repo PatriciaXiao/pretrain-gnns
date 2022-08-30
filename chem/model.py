@@ -299,11 +299,13 @@ class GNN(torch.nn.Module):
             x += self.prompt_embed(torch.remainder(subgraph, self.max_nodes).long() )
         elif self.node_prompt_num > 0:
             ### virtual node embeddings for graphs
-            # virtualnode_embedding = self.prompt_embed(torch.zeros(x.shape[0]).to(edge_index.dtype).to(x.device))
+            #virtualnode_embedding = self.prompt_embed(torch.zeros(x.shape[0]).to(edge_index.dtype).to(x.device))
+
             # virtualnode_embedding = self.prompt_embed(torch.zeros(batch[-1].item() + 1).to(edge_index.dtype).to(edge_index.device))
+            
             virtualnode_embedding = self.prompt_embed(torch.arange(self.node_prompt_num).repeat(batch[-1].item() + 1).to(edge_index.dtype).to(edge_index.device))
-            #print(torch.arange(self.node_prompt_num).repeat(batch[-1].item() + 1).shape)
-            #exit(0)
+            print(torch.arange(self.node_prompt_num).repeat(batch[-1].item() + 1).shape)
+            exit(0)
             #print(virtualnode_embedding)
 
         #import numpy as np
@@ -312,7 +314,7 @@ class GNN(torch.nn.Module):
         """
         h_list = [x]
         for layer in range(self.num_layer):
-            h = self.gnns[layer](h_list[layer], edge_index, edge_attr)
+            h = self.gnns[layer](h_list[layer], edge_index, edge_attr) + virtualnode_embedding
             h = self.batch_norms[layer](h)
             #h = F.dropout(F.relu(h), self.drop_ratio, training = self.training)
             if layer == self.num_layer - 1:
@@ -322,7 +324,9 @@ class GNN(torch.nn.Module):
                 h = F.dropout(F.relu(h), self.drop_ratio, training = self.training)
             h_list.append(h)
         """
+        
 
+        #"""
         h_list = [x]
         for layer in range(self.num_layer):
 
@@ -346,6 +350,7 @@ class GNN(torch.nn.Module):
                 ### transform virtual nodes using MLP
                 # residual? virtualnode_embedding + 
                 virtualnode_embedding = F.dropout(self.mlp_virtualnode_list[layer](virtualnode_embedding), self.drop_ratio, training = self.training)
+        #"""
 
                 
         ### Different implementations of Jk-concat

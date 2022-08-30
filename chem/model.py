@@ -236,6 +236,7 @@ class GNN(torch.nn.Module):
         self.stru_prompting = stru_prompting
         self.node_prompt_num = 0
         self.mlp_virtualnode_list = None
+        self.mlp_softmax_list = None
         if self.feat_prompting and not self.stru_prompting:
             # print(num_atom_type, num_chirality_tag) # 120, 3
             self.max_nodes = max_nodes
@@ -245,7 +246,7 @@ class GNN(torch.nn.Module):
             #torch.nn.init.xavier_uniform_(self.prompt_embed.weight.data)
             torch.nn.init.zeros_(self.prompt_embed.weight.data)
         elif self.stru_prompting and not self.feat_prompting:
-            self.node_prompt_num = 10 #1
+            self.node_prompt_num = 1 #1
             self.prompt_embed = torch.nn.Embedding(self.node_prompt_num, emb_dim) # single virtual node
             torch.nn.init.xavier_uniform_(self.prompt_embed.weight.data)
             
@@ -256,10 +257,9 @@ class GNN(torch.nn.Module):
                 self.mlp_virtualnode_list.append(torch.nn.Sequential(torch.nn.Linear(emb_dim, 2*emb_dim), torch.nn.BatchNorm1d(2*emb_dim), torch.nn.ReLU(), \
                                                     torch.nn.Linear(2*emb_dim, emb_dim), torch.nn.BatchNorm1d(emb_dim), torch.nn.ReLU()))
 
-            self.mlp_softmax_list = torch.nn.ModuleList()
-            for layer in range(self.node_prompt_num):#range(num_layer - 1): # prompt specific
-                self.mlp_softmax_list.append(torch.nn.Sequential(torch.nn.Linear(emb_dim, 2*emb_dim), torch.nn.BatchNorm1d(2*emb_dim), torch.nn.ReLU(), \
-                                                    torch.nn.Linear(2*emb_dim, emb_dim), torch.nn.BatchNorm1d(emb_dim), torch.nn.ReLU()))
+            #self.mlp_softmax_list = torch.nn.ModuleList()
+            #for layer in range(self.node_prompt_num):#range(num_layer - 1): # prompt specific
+            #    self.mlp_softmax_list.append(torch.nn.Sequential(torch.nn.Linear(emb_dim, 1), torch.nn.BatchNorm1d(1), torch.nn.ReLU()))
 
         #elif self.stru_prompting and self.feat_prompting:
         #    assert False, "not implemented"
@@ -344,7 +344,9 @@ class GNN(torch.nn.Module):
                     
                     # all_embeddings[i] = (1-s) * global_mean_pool(h, batch) + s * all_embeddings[i]
 
-                    score = self.mlp_softmax_list[layer](all_embeddings[i])
+                    #score = self.mlp_softmax_list[layer](all_embeddings[i])
+                    #print(score)
+                    #exit(0)
 
                     all_embeddings[i] = (1-s) * global_mean_pool(h, batch) + s * all_embeddings[i]
 
@@ -512,7 +514,19 @@ class GNN_graphpred(torch.nn.Module):
                 param.requires_grad = False
             self.gnn.prompt_embed.weight.requires_grad = True
             if self.gnn.node_prompt_num > 0 and self.gnn.mlp_virtualnode_list:
-                self.gnn.mlp_virtualnode_list.requires_grad = True
+                for name, param in self.gnn.named_parameters():
+                    if "mlp_virtualnode_list" in name:
+                        param.requires_grad = True
+                if self.gnn.mlp_softmax_list:
+                    for name, param in self.gnn.named_parameters():
+                        if "mlp_softmax_list" in name:
+                            param.requires_grad = True
+            for name, param in self.gnn.named_parameters(): # self.named_parameters():
+                if param.requires_grad:
+                    print("requires grad", name, param.data.shape)
+                else:
+                    print("no grad", name) # param.data
+
         elif not self.feat_prompting and not self.stru_prompting:
             for param in self.gnn.parameters(): # self.parameters():
                 param.requires_grad = True # when testing the frozen mode, set it to False

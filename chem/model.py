@@ -243,9 +243,16 @@ class GNN(torch.nn.Module):
             #torch.nn.init.xavier_uniform_(self.prompt_embed.weight.data)
             torch.nn.init.zeros_(self.prompt_embed.weight.data)
         elif self.stru_prompting and not self.feat_prompting:
-            self.prompt_embed = torch.nn.Embedding(1, emb_dim) # single virtual node
-            torch.nn.init.xavier_uniform_(self.prompt_embed.weight.data)
             self.node_prompt_num = 1
+            self.prompt_embed = torch.nn.Embedding(self.node_prompt_num, emb_dim) # single virtual node
+            torch.nn.init.xavier_uniform_(self.prompt_embed.weight.data)
+            
+            ### List of MLPs to transform virtual node at every layer
+            self.mlp_virtualnode_list = torch.nn.ModuleList()
+            for layer in range(num_layer - 1):
+                self.mlp_virtualnode_list.append(torch.nn.Sequential(torch.nn.Linear(emb_dim, 2*emb_dim), torch.nn.BatchNorm1d(2*emb_dim), torch.nn.ReLU(), \
+                                                    torch.nn.Linear(2*emb_dim, emb_dim), torch.nn.BatchNorm1d(emb_dim), torch.nn.ReLU()))
+
         #elif self.stru_prompting and self.feat_prompting:
         #    assert False, "not implemented"
 
@@ -292,7 +299,10 @@ class GNN(torch.nn.Module):
         elif self.node_prompt_num > 0:
             ### virtual node embeddings for graphs
             # virtualnode_embedding = self.prompt_embed(torch.zeros(x.shape[0]).to(edge_index.dtype).to(x.device))
-            virtualnode_embedding = self.prompt_embed(torch.zeros(batch[-1].item() + 1).to(edge_index.dtype).to(edge_index.device))
+            # virtualnode_embedding = self.prompt_embed(torch.zeros(batch[-1].item() + 1).to(edge_index.dtype).to(edge_index.device))
+            virtualnode_embedding = self.prompt_embed(torch.arange(self.node_prompt_num).repeat(batch[-1].item() + 1).to(edge_index.dtype).to(edge_index.device))
+            #print(torch.arange(self.node_prompt_num).repeat(batch[-1].item() + 1).shape)
+            #exit(0)
             #print(virtualnode_embedding)
 
         #import numpy as np
@@ -333,6 +343,8 @@ class GNN(torch.nn.Module):
                 s = 0.5
                 virtualnode_embedding = (1-s) * global_mean_pool(h, batch) + s * virtualnode_embedding
                 ### transform virtual nodes using MLP
+                # residual? virtualnode_embedding + 
+                virtualnode_embedding = F.dropout(self.mlp_virtualnode_list[layer](virtualnode_embedding), self.drop_ratio, training = self.training)
 
                 
         ### Different implementations of Jk-concat

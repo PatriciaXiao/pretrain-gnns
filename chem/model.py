@@ -222,6 +222,7 @@ class GNN(torch.nn.Module):
     def __init__(self, num_layer, emb_dim, JK = "last", drop_ratio = 0, gnn_type = "gin", feat_prompting=False, stru_prompting=False, max_nodes=0):
         super(GNN, self).__init__()
         self.num_layer = num_layer
+        self.emb_dim = emb_dim
         self.drop_ratio = drop_ratio
         self.JK = JK
 
@@ -244,13 +245,14 @@ class GNN(torch.nn.Module):
             #torch.nn.init.xavier_uniform_(self.prompt_embed.weight.data)
             torch.nn.init.zeros_(self.prompt_embed.weight.data)
         elif self.stru_prompting and not self.feat_prompting:
-            self.node_prompt_num = 1
+            self.node_prompt_num = 2 #1
             self.prompt_embed = torch.nn.Embedding(self.node_prompt_num, emb_dim) # single virtual node
             torch.nn.init.xavier_uniform_(self.prompt_embed.weight.data)
             
             ### List of MLPs to transform virtual node at every layer
             self.mlp_virtualnode_list = torch.nn.ModuleList()
-            for layer in range(num_layer - 1):
+            #for layer in range(self.node_prompt_num):#range(num_layer - 1): # prompt specific
+            for layer in range(num_layer - 1): # layer-specific
                 self.mlp_virtualnode_list.append(torch.nn.Sequential(torch.nn.Linear(emb_dim, 2*emb_dim), torch.nn.BatchNorm1d(2*emb_dim), torch.nn.ReLU(), \
                                                     torch.nn.Linear(2*emb_dim, emb_dim), torch.nn.BatchNorm1d(emb_dim), torch.nn.ReLU()))
 
@@ -303,13 +305,51 @@ class GNN(torch.nn.Module):
 
             # virtualnode_embedding = self.prompt_embed(torch.zeros(batch[-1].item() + 1).to(edge_index.dtype).to(edge_index.device))
             
-            virtualnode_embedding = self.prompt_embed(torch.arange(self.node_prompt_num).repeat(batch[-1].item() + 1).to(edge_index.dtype).to(edge_index.device))
-            print(torch.arange(self.node_prompt_num).repeat(batch[-1].item() + 1).shape)
-            exit(0)
-            #print(virtualnode_embedding)
+            virtualnode_embedding = self.prompt_embed(torch.arange(self.node_prompt_num).repeat(batch[-1].item() + 1, 1).to(edge_index.dtype).to(edge_index.device))
+            all_embeddings = list()
+            for i in range(self.node_prompt_num):
+                all_embeddings.append(virtualnode_embedding[:,i,:])
+            #virtualnode_embedding = virtualnode_embedding[:,0,:]
+            #print(torch.arange(self.node_prompt_num).repeat(batch[-1].item() + 1, 1).shape)
+            #exit(0)
+            #print(virtualnode_embedding.shape)
+            #exit(0)
 
-        #import numpy as np
-        #print(self.x_embedding1.weight[:,0])
+        #"""
+        h_list = [x]
+        for layer in range(self.num_layer):
+
+            h = self.gnns[layer](h_list[layer], edge_index, edge_attr) 
+            for i in range(self.node_prompt_num):
+                h = h + all_embeddings[i][batch] / self.node_prompt_num
+            h = self.batch_norms[layer](h)
+            #h = F.dropout(F.relu(h), self.drop_ratio, training = self.training)
+            if layer == self.num_layer - 1:
+                #remove relu for the last layer
+                h = F.dropout(h, self.drop_ratio, training = self.training)
+            else:
+                h = F.dropout(F.relu(h), self.drop_ratio, training = self.training)
+            h_list.append(h)
+
+            ### update the virtual nodes
+            if layer < self.num_layer - 1:
+                for i in range(self.node_prompt_num):
+                    ### add message from graph nodes to virtual nodes
+                    s = 0.5
+                    all_embeddings[i] = (1-s) * global_mean_pool(h, batch) + s * all_embeddings[i]
+
+                    from torch_geometric.utils import softmax
+                    score = softmax(h[:,0], batch)
+
+                    print(score)
+                    print(batch)
+                    print(global_add_pool(score, batch))
+                    exit(0)
+                    ### transform virtual nodes using MLP
+                    # residual? virtualnode_embedding + 
+                    all_embeddings[i] = F.dropout(self.mlp_virtualnode_list[layer](all_embeddings[i]), self.drop_ratio, training = self.training)
+        #"""
+
 
         """
         h_list = [x]
@@ -326,7 +366,7 @@ class GNN(torch.nn.Module):
         """
         
 
-        #"""
+        """
         h_list = [x]
         for layer in range(self.num_layer):
 

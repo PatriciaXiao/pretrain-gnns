@@ -521,11 +521,6 @@ class GNN_graphpred(torch.nn.Module):
                     for name, param in self.gnn.named_parameters():
                         if "mlp_softmax_list" in name:
                             param.requires_grad = True
-            for name, param in self.gnn.named_parameters(): # self.named_parameters():
-                if param.requires_grad:
-                    print("requires grad", name, param.data.shape)
-                else:
-                    print("no grad", name) # param.data
 
         elif not self.feat_prompting and not self.stru_prompting:
             for param in self.gnn.parameters(): # self.parameters():

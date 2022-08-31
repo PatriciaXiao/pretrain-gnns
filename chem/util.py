@@ -299,18 +299,34 @@ class PreprocessPrompt:
         #     num_pnode : number of prompt nodes
         # Return values :
         #       max_size: find largest graph size in the data set
+        # Making changes to the input graphs (in-place) as well
         """
         max_size = 0 
         graph_index = torch.LongTensor(torch.empty((0,), dtype=torch.int64))
 
         #for step, batch in enumerate(tqdm(self.loader, desc="Process Nodes")):
+        #for i,data in enumerate(self.dataset):
+        #    print(i,data)
+        #    print(self.dataset[0])
+        #    exit(0)
+        #print(self.dataset.__dict__)
+        #print(self.dataset.slices["x"].shape, self.dataset.slices["y"].shape)
+        # print(self.dataset.slices["x"]) # it indicates where to begin with
+        #self.dataset.slices["edge_index"][1] += 1
+        #print(self.dataset.slices["edge_index"])
+        #print(self.dataset.slices["edge_attr"])
+        #exit(0)
+        # exit(0)
         for data in self.dataset:
 
-            print(data)
-            print(data.__dict__)
+            #print(data)
+            #print(data.__dict__)
             #print(data["edge_attr"])
             exit(0)
+            # add num_pnode number of nodes
 
+
+            # assign node indexes as well as counting the nodes
             graph_index = torch.cat((graph_index, torch.arange(data.x.shape[0])))
 
             # graph_index = torch.cat((graph_index, batch.batch+step))

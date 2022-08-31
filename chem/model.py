@@ -246,7 +246,7 @@ class GNN(torch.nn.Module):
             #torch.nn.init.xavier_uniform_(self.prompt_embed.weight.data)
             torch.nn.init.zeros_(self.prompt_embed.weight.data)
         elif self.stru_prompting and not self.feat_prompting:
-            self.node_prompt_num = 2 #1
+            self.node_prompt_num = 1 #1
             self.prompt_embed = torch.nn.Embedding(self.node_prompt_num, emb_dim) # single virtual node
             torch.nn.init.xavier_uniform_(self.prompt_embed.weight.data)
             

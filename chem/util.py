@@ -293,8 +293,10 @@ class PreprocessPrompt:
         #self.dataset.data.x2 = self.dataset.data.x
         #self.dataset.slices["x2"] = self.dataset.slices["x"]
 
-    def process(self):
+    def process(self, num_pnode=1):
         """
+        # Parameters    : 
+        #     num_pnode : number of prompt nodes
         # Return values :
         #       max_size: find largest graph size in the data set
         """

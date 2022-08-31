@@ -304,6 +304,11 @@ class PreprocessPrompt:
         #for step, batch in enumerate(tqdm(self.loader, desc="Process Nodes")):
         for data in self.dataset:
 
+            print(data)
+            print(data.__dict__)
+            #print(data["edge_attr"])
+            exit(0)
+
             graph_index = torch.cat((graph_index, torch.arange(data.x.shape[0])))
 
             # graph_index = torch.cat((graph_index, batch.batch+step))

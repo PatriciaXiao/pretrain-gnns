@@ -75,9 +75,6 @@ class GCNConv(MessagePassing):
         edge_weight = torch.ones((edge_index.size(1), ), dtype=dtype,
                                      device=edge_index.device)
         row, col = edge_index
-        print(row)
-        print(col)
-        exit(0)
         deg = scatter_add(edge_weight, row, dim=0, dim_size=num_nodes)
         deg_inv_sqrt = deg.pow(-0.5)
         deg_inv_sqrt[deg_inv_sqrt == float('inf')] = 0
@@ -222,7 +219,7 @@ class GNN(torch.nn.Module):
         node representations
 
     """
-    def __init__(self, num_layer, emb_dim, JK = "last", drop_ratio = 0, gnn_type = "gin", feat_prompting=False, stru_prompting=False, max_nodes=0):
+    def __init__(self, num_layer, emb_dim, JK = "last", drop_ratio = 0, gnn_type = "gin", feat_prompting=False, stru_prompting=False, max_nodes=0, num_prompt_nodes=0):
         super(GNN, self).__init__()
         self.num_layer = num_layer
         self.emb_dim = emb_dim
@@ -237,7 +234,7 @@ class GNN(torch.nn.Module):
 
         self.feat_prompting = feat_prompting
         self.stru_prompting = stru_prompting
-        self.node_prompt_num = 0
+        self.num_prompt_nodes = num_prompt_nodes
         self.mlp_virtualnode_list = None
         self.mlp_softmax_list = None
         if self.feat_prompting and not self.stru_prompting:
@@ -249,20 +246,19 @@ class GNN(torch.nn.Module):
             #torch.nn.init.xavier_uniform_(self.prompt_embed.weight.data)
             torch.nn.init.zeros_(self.prompt_embed.weight.data)
         elif self.stru_prompting and not self.feat_prompting:
-            self.node_prompt_num = 2 #1
-            self.prompt_embed = torch.nn.Embedding(self.node_prompt_num, emb_dim) # single virtual node
+            self.prompt_embed = torch.nn.Embedding(self.num_prompt_nodes, emb_dim) # single virtual node
             torch.nn.init.xavier_uniform_(self.prompt_embed.weight.data)
             
             """
             ### List of MLPs to transform virtual node at every layer
             self.mlp_virtualnode_list = torch.nn.ModuleList()
-            #for layer in range(self.node_prompt_num):#range(num_layer - 1): # prompt specific
+            #for layer in range(self.num_prompt_nodes):#range(num_layer - 1): # prompt specific
             for layer in range(num_layer - 1): # layer-specific
                 self.mlp_virtualnode_list.append(torch.nn.Sequential(torch.nn.Linear(emb_dim, 2*emb_dim), torch.nn.BatchNorm1d(2*emb_dim), torch.nn.ReLU(), \
                                                     torch.nn.Linear(2*emb_dim, emb_dim), torch.nn.BatchNorm1d(emb_dim), torch.nn.ReLU()))
 
             #self.mlp_softmax_list = torch.nn.ModuleList()
-            #for layer in range(self.node_prompt_num):#range(num_layer - 1): # prompt specific
+            #for layer in range(self.num_prompt_nodes):#range(num_layer - 1): # prompt specific
             #    self.mlp_softmax_list.append(torch.nn.Sequential(torch.nn.Linear(emb_dim, 1), torch.nn.BatchNorm1d(1), torch.nn.ReLU()))
 
             """
@@ -315,7 +311,7 @@ class GNN(torch.nn.Module):
         if self.feat_prompting and not self.stru_prompting:
             #x += self.prompt_embed(torch.remainder(x[:,0], self.max_nodes).long() )
             x += self.prompt_embed(torch.remainder(subgraph, self.max_nodes).long() )
-        elif self.node_prompt_num > 0:
+        elif self.num_prompt_nodes > 0:
             ### virtual node embeddings for graphs
             #virtualnode_embedding = self.prompt_embed(torch.zeros(x.shape[0]).to(edge_index.dtype).to(x.device))
             # virtualnode_embedding = self.prompt_embed(torch.zeros(batch[-1].item() + 1).to(edge_index.dtype).to(edge_index.device))
@@ -327,12 +323,12 @@ class GNN(torch.nn.Module):
             #exit(0)
 
             """
-            virtualnode_embedding = self.prompt_embed(torch.arange(self.node_prompt_num).repeat(batch[-1].item() + 1, 1).to(edge_index.dtype).to(edge_index.device))
+            virtualnode_embedding = self.prompt_embed(torch.arange(self.num_prompt_nodes).repeat(batch[-1].item() + 1, 1).to(edge_index.dtype).to(edge_index.device))
             all_embeddings = list()
-            for i in range(self.node_prompt_num):
+            for i in range(self.num_prompt_nodes):
                 all_embeddings.append(virtualnode_embedding[:,i,:])
             #virtualnode_embedding = virtualnode_embedding[:,0,:]
-            #print(torch.arange(self.node_prompt_num).repeat(batch[-1].item() + 1, 1).shape)
+            #print(torch.arange(self.num_prompt_nodes).repeat(batch[-1].item() + 1, 1).shape)
             #exit(0)
             #print(virtualnode_embedding.shape)
             #exit(0)
@@ -343,8 +339,8 @@ class GNN(torch.nn.Module):
         for layer in range(self.num_layer):
 
             h = self.gnns[layer](h_list[layer], edge_index, edge_attr) 
-            for i in range(self.node_prompt_num):
-                h = h + all_embeddings[i][batch] / self.node_prompt_num
+            for i in range(self.num_prompt_nodes):
+                h = h + all_embeddings[i][batch] / self.num_prompt_nodes
             h = self.batch_norms[layer](h)
             #h = F.dropout(F.relu(h), self.drop_ratio, training = self.training)
             if layer == self.num_layer - 1:
@@ -356,7 +352,7 @@ class GNN(torch.nn.Module):
 
             ### update the virtual nodes
             if layer < self.num_layer - 1:
-                for i in range(self.node_prompt_num):
+                for i in range(self.num_prompt_nodes):
                     ### add message from graph nodes to virtual nodes
                     s = 0.5
                     
@@ -402,7 +398,7 @@ class GNN(torch.nn.Module):
         for layer in range(self.num_layer):
 
             h = self.gnns[layer](h_list[layer], edge_index, edge_attr) 
-            if self.node_prompt_num > 0:
+            if self.num_prompt_nodes > 0:
                 h = h + virtualnode_embedding[batch]
             h = self.batch_norms[layer](h)
             #h = F.dropout(F.relu(h), self.drop_ratio, training = self.training)
@@ -414,7 +410,7 @@ class GNN(torch.nn.Module):
             h_list.append(h)
 
             ### update the virtual nodes
-            if self.node_prompt_num > 0 and layer < self.num_layer - 1:
+            if self.num_prompt_nodes > 0 and layer < self.num_layer - 1:
                 ### add message from graph nodes to virtual nodes
                 s = 0.5
                 virtualnode_embedding = (1-s) * global_mean_pool(h, batch) + s * virtualnode_embedding
@@ -458,7 +454,7 @@ class GNN_graphpred(torch.nn.Module):
     See https://arxiv.org/abs/1810.00826
     JK-net: https://arxiv.org/abs/1806.03536
     """
-    def __init__(self, num_layer, emb_dim, num_tasks, JK = "last", drop_ratio = 0, graph_pooling = "mean", gnn_type = "gin", feat_prompting=False, stru_prompting=True, max_nodes=0):
+    def __init__(self, num_layer, emb_dim, num_tasks, JK = "last", drop_ratio = 0, graph_pooling = "mean", gnn_type = "gin", feat_prompting=False, stru_prompting=True, max_nodes=0, num_prompt_nodes=0):
         super(GNN_graphpred, self).__init__()
         self.num_layer = num_layer
         self.drop_ratio = drop_ratio
@@ -473,7 +469,7 @@ class GNN_graphpred(torch.nn.Module):
         self.stru_prompting = stru_prompting #and not feat_prompting
         self.freezeGnnParam = feat_prompting and stru_prompting
         self.finetuneGnnMod = not feat_prompting and not stru_prompting
-        self.gnn = GNN(num_layer, emb_dim, JK, drop_ratio, gnn_type = gnn_type, feat_prompting=feat_prompting, stru_prompting=stru_prompting, max_nodes=max_nodes)
+        self.gnn = GNN(num_layer, emb_dim, JK, drop_ratio, gnn_type = gnn_type, feat_prompting=feat_prompting, stru_prompting=stru_prompting, max_nodes=max_nodes, num_prompt_nodes=num_prompt_nodes)
 
         for param in self.gnn.parameters():
             param.requires_grad = False
@@ -529,7 +525,7 @@ class GNN_graphpred(torch.nn.Module):
             for param in self.gnn.parameters():
                 param.requires_grad = False
             self.gnn.prompt_embed.weight.requires_grad = True
-            if self.gnn.node_prompt_num > 0 and self.gnn.mlp_virtualnode_list:
+            if self.gnn.num_prompt_nodes > 0 and self.gnn.mlp_virtualnode_list:
                 for name, param in self.gnn.named_parameters():
                     if "mlp_virtualnode_list" in name:
                         param.requires_grad = True

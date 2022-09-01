@@ -1,8 +1,22 @@
-{'dataset': 'clintox', 'root': 'dataset/clintox', 'raw_dir': 'dataset/clintox/raw', 'processed_dir': 'dataset/clintox/processed', 'transform': None, 'pre_transform': None, 'pre_filter': None, 'data': Data(edge_attr=[82372, 2], edge_index=[2, 82372], id=[1477], x=[38637, 2], y=[2954]), 'slices': {'x': tensor([    0,    12,    26,  ..., 38629, 38634, 38637]), 'edge_index': tensor([    0,    24,    50,  ..., 82360, 82368, 82372]), 'edge_attr': tensor([    0,    24,    50,  ..., 82360, 82368, 82372]), 'y': tensor([   0,    2,    4,  ..., 2950, 2952, 2954]), 'id': tensor([   0,    1,    2,  ..., 1475, 1476, 1477])}}
+'data': Data(edge_attr=[82372, 2], edge_index=[2, 82372], id=[1477], x=[38637, 2], y=[2954]), 
+'slices': 
+{'x': tensor([    0,    12,    26,  ..., 38629, 38634, 38637]), 
+'edge_index': tensor([    0,    24,    50,  ..., 82360, 82368, 82372]), 
+'edge_attr': tensor([    0,    24,    50,  ..., 82360, 82368, 82372]), 
+'y': tensor([   0,    2,    4,  ..., 2950, 2952, 2954]), 
+'id': tensor([   0,    1,    2,  ..., 1475, 1476, 1477])}}
 
 /Users/patriciaxiao/Documents/GitHub/pretrain-gnns/chem/util.py:323: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
   prompt_mask = torch.tensor(torch.empty((0,), dtype=torch.uint8))
 
-{'dataset': 'clintox', 'root': 'dataset/clintox', 'raw_dir': 'dataset/clintox/raw', 'processed_dir': 'dataset/clintox/processed', 'transform': None, 'pre_transform': None, 'pre_filter': None, 'data': Data(edge_attr=[236920, 2], edge_index=[2, 236920], id=[1477], prompt_mask=[41591], subgraph=[38637], x=[41591, 2], y=[2954]), 'slices': {'x': tensor([    0,    14,    30,  ..., 41579, 41586, 38637]), 'edge_index': tensor([     0,     48,    102,  ..., 159618, 159636,  82372]), 'edge_attr': tensor([     0,     48,    102,  ..., 159618, 159636,  82372]), 'y': tensor([   0,    2,    4,  ..., 2950, 2952, 2954]), 'id': tensor([   0,    1,    2,  ..., 1475, 1476, 1477]), 'subgraph': tensor([    0,    14,    30,  ..., 41579, 41586, 38637]), 'prompt_mask': tensor([    0,    14,    30,  ..., 41579, 41586, 38637])}}
+'data': Data(edge_attr=[236920, 2], edge_index=[2, 236920], id=[1477], prompt_mask=[41591], subgraph=[38637], x=[41591, 2], y=[2954]), 
+'slices': {'x': tensor([    0,    14,    30,  ..., 41579, 41586, 38637]), 
+'edge_index': tensor([     0,     48,    102,  ..., 159618, 159636,  82372]), 
+'edge_attr': tensor([     0,     48,    102,  ..., 159618, 159636,  82372]), 
+'y': tensor([   0,    2,    4,  ..., 2950, 2952, 2954]), 
+'id': tensor([   0,    1,    2,  ..., 1475, 1476, 1477]), 
+'prompt_mask': tensor([    0,    14,    30,  ..., 41579, 41586, 38637])}}
 
-(26 - 12) * 2 + 48 = 28 + 48 = 76???? != 102
+12 * 4 + 12 = 48 + 12 = 60
+
+(26 - 12) * 2 * 2 + 48 = 56 + 48 = 104 ???? != 102

@@ -293,10 +293,10 @@ class PreprocessPrompt:
         #self.dataset.data.x2 = self.dataset.data.x
         #self.dataset.slices["x2"] = self.dataset.slices["x"]
 
-    def process(self, num_pnode=2):
+    def process(self, num_prompt_nodes=2):
         """
         # Parameters    : 
-        #     num_pnode : number of prompt nodes
+        #     num_prompt_nodes : number of prompt nodes
         # Return values :
         #       max_size: find largest graph size in the data set
         # Making changes to the input graphs (in-place) as well
@@ -327,23 +327,30 @@ class PreprocessPrompt:
 
         for idx,data in enumerate(self.dataset):
 
+
             #print(data)
             #print(data.__dict__)
             #print(data["edge_attr"])
-            # add num_pnode number of nodes
+            # add num_prompt_nodes number of nodes
             num_nodes = data.x.shape[0] #data["x"].shape[0] 
             #print(data.__dict__)
 
-            n_new = num_nodes*num_pnode
-            nodes_list = torch.arange(num_nodes).repeat(num_pnode).view(1,n_new)
-            newnode_list = torch.flatten(torch.arange(num_pnode).repeat(num_nodes,1).transpose(1,0) + num_nodes).view(1,n_new)
+            
+            # change edge
+            directions = 2 # 2 for bi-directional, 1 for single-directional
+            n_new = num_nodes*num_prompt_nodes
+            nodes_list = torch.arange(num_nodes).repeat(num_prompt_nodes).view(1,n_new)
+            newnode_list = torch.flatten(torch.arange(num_prompt_nodes).repeat(num_nodes,1).transpose(1,0) + num_nodes).view(1,n_new)
 
             from_edges = torch.cat([nodes_list, newnode_list], dim=0)
-            to_edges = torch.cat([newnode_list, nodes_list], dim=0)
+            to_edges = torch.cat([newnode_list, nodes_list], dim=0) 
             
-            data["edge_index"] = torch.cat([data["edge_index"], from_edges, to_edges], dim=1)
+            if directions == 2:
+                data["edge_index"] = torch.cat([data["edge_index"], from_edges, to_edges], dim=1)
+            elif directions == 1:
+                data["edge_index"] = torch.cat([data["edge_index"], from_edges], dim=1)
             
-            new_attr = torch.zeros((2*n_new, data["edge_attr"].shape[1])).to(data["edge_attr"].dtype)
+            new_attr = torch.zeros((directions * n_new, data["edge_attr"].shape[1])).to(data["edge_attr"].dtype)
             data["edge_attr"] = torch.cat([data["edge_attr"], new_attr], dim=0)
 
             edge_index = torch.cat((edge_index, data["edge_index"]), dim=1)
@@ -351,15 +358,16 @@ class PreprocessPrompt:
 
             self.dataset.slices["edge_index"][idx] += shift_edge
             self.dataset.slices["edge_attr"][idx] += shift_edge
-            shift_edge += n_new
+            shift_edge += directions * n_new
+            
 
             #mask
-            prompt_mask = torch.cat((prompt_mask, torch.tensor([False]*num_nodes + [True]*num_pnode)))
+            prompt_mask = torch.cat((prompt_mask, torch.tensor([False]*num_nodes + [True]*num_prompt_nodes)))
 
-            # x = torch.cat((x, data.x, torch.zeros(num_pnode, data.x.shape[1]).to(data.x.dtype)))
-            x = torch.cat((x, data.x, torch.arange(num_pnode).repeat(data.x.shape[1], 1).transpose(1,0)))
+            # x = torch.cat((x, data.x, torch.zeros(num_prompt_nodes, data.x.shape[1]).to(data.x.dtype)))
+            x = torch.cat((x, data.x, torch.arange(num_prompt_nodes).repeat(data.x.shape[1], 1).transpose(1,0)))
             self.dataset.slices["x"][idx] += shift_node
-            shift_node += num_pnode
+            shift_node += num_prompt_nodes
 
 
             # assign node indexes as well as counting the nodes
@@ -380,8 +388,10 @@ class PreprocessPrompt:
         self.dataset.data.subgraph = graph_index
         self.dataset.slices["subgraph"] = self.dataset.slices["x"]
 
+        
         self.dataset.data.edge_index = edge_index
         self.dataset.data.edge_attr = edge_attr
+        
 
         self.dataset.data.prompt_mask = prompt_mask
         self.dataset.slices["prompt_mask"] = self.dataset.slices["x"]

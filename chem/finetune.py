@@ -147,6 +147,8 @@ def main():
                         help='graph level pooling (sum, mean, max, set2set, attention)')
     parser.add_argument('-prompt', '--graph_prompting', type=str, default="stru",
                         help='graph prompting method (none for nothing, feat for feature, stru for structure, both for both feature and structural)')
+    parser.add_argument('-npn', '--num_prompt_nodes', type=int, default=0,
+                        help='number of prompt nodes attached to the rest of the graph (default: 0)')
     parser.add_argument('--JK', type=str, default="last", choices=["last", "sum", "max", "concat", "none"],
                         help='how the node features across layers are combined. last, sum, max or concat; none for using another prediction method.')
     parser.add_argument('--gnn_type', type=str, default="gin")
@@ -202,7 +204,7 @@ def main():
     print(dataset)
 
     pre_processor = PreprocessPrompt(dataset, args.num_workers)
-    max_nodes = pre_processor.process()
+    max_nodes = pre_processor.process(num_prompt_nodes=args.num_prompt_nodes)
 
     #print(dataset.slices["edge_index"])
     #print(dataset.slices["edge_attr"])
@@ -241,7 +243,7 @@ def main():
     test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, num_workers = args.num_workers)
 
     #set up model
-    model = GNN_graphpred(args.num_layer, args.emb_dim, num_tasks, JK = args.JK, drop_ratio = args.dropout_ratio, graph_pooling = args.graph_pooling, gnn_type = args.gnn_type, feat_prompting=feat_prompting, stru_prompting=stru_prompting, max_nodes=max_nodes)
+    model = GNN_graphpred(args.num_layer, args.emb_dim, num_tasks, JK = args.JK, drop_ratio = args.dropout_ratio, graph_pooling = args.graph_pooling, gnn_type = args.gnn_type, feat_prompting=feat_prompting, stru_prompting=stru_prompting, max_nodes=max_nodes, num_prompt_nodes=args.num_prompt_nodes)
     if not args.input_model_file == "":
         model.from_pretrained(args.input_model_file, device)
     

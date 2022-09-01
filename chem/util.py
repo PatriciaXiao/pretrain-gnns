@@ -293,7 +293,7 @@ class PreprocessPrompt:
         #self.dataset.data.x2 = self.dataset.data.x
         #self.dataset.slices["x2"] = self.dataset.slices["x"]
 
-    def process(self, num_pnode=1):
+    def process(self, num_pnode=2):
         """
         # Parameters    : 
         #     num_pnode : number of prompt nodes
@@ -303,6 +303,7 @@ class PreprocessPrompt:
         """
         max_size = 0 
         graph_index = torch.LongTensor(torch.empty((0,), dtype=torch.int64))
+        #self.dataset.slices["subgraph"] = self.dataset.slices["x"]
 
         #for step, batch in enumerate(tqdm(self.loader, desc="Process Nodes")):
         #for i,data in enumerate(self.dataset):
@@ -316,18 +317,54 @@ class PreprocessPrompt:
         #print(self.dataset.slices["edge_index"])
         #print(self.dataset.slices["edge_attr"])
         #exit(0)
-        # exit(0)
-        for data in self.dataset:
+        edge_attr = torch.LongTensor(torch.empty((0,), dtype=torch.int64))
+        edge_index = torch.LongTensor(torch.empty((0,), dtype=torch.int64))
+        shift_edge = 0
+
+        prompt_mask = torch.tensor(torch.empty((0,), dtype=torch.uint8))
+        x = torch.LongTensor(torch.empty((0,), dtype=torch.int64))
+        shift_node = 0
+
+        for idx,data in enumerate(self.dataset):
 
             #print(data)
             #print(data.__dict__)
             #print(data["edge_attr"])
-            exit(0)
             # add num_pnode number of nodes
+            num_nodes = data.x.shape[0] #data["x"].shape[0] 
+            #print(data.__dict__)
+
+            n_new = num_nodes*num_pnode
+            nodes_list = torch.arange(num_nodes).repeat(num_pnode).view(1,n_new)
+            newnode_list = torch.flatten(torch.arange(num_pnode).repeat(num_nodes,1).transpose(1,0) + num_nodes).view(1,n_new)
+
+            from_edges = torch.cat([nodes_list, newnode_list], dim=0)
+            to_edges = torch.cat([newnode_list, nodes_list], dim=0)
+            
+            data["edge_index"] = torch.cat([data["edge_index"], from_edges, to_edges], dim=1)
+            
+            new_attr = torch.zeros((2*n_new, data["edge_attr"].shape[1])).to(data["edge_attr"].dtype)
+            data["edge_attr"] = torch.cat([data["edge_attr"], new_attr], dim=0)
+
+            edge_index = torch.cat((edge_index, data["edge_index"]), dim=1)
+            edge_attr  = torch.cat((edge_attr,  data["edge_attr"]), dim=0)
+
+            self.dataset.slices["edge_index"][idx] += shift_edge
+            self.dataset.slices["edge_attr"][idx] += shift_edge
+            shift_edge += n_new
+
+            #mask
+            prompt_mask = torch.cat((prompt_mask, torch.tensor([False]*num_nodes + [True]*num_pnode)))
+
+            # x = torch.cat((x, data.x, torch.zeros(num_pnode, data.x.shape[1]).to(data.x.dtype)))
+            x = torch.cat((x, data.x, torch.arange(num_pnode).repeat(data.x.shape[1], 1).transpose(1,0)))
+            self.dataset.slices["x"][idx] += shift_node
+            shift_node += num_pnode
 
 
             # assign node indexes as well as counting the nodes
-            graph_index = torch.cat((graph_index, torch.arange(data.x.shape[0])))
+            #graph_index = torch.cat((graph_index, torch.arange(num_nodes)))
+            graph_index = torch.cat((graph_index, torch.arange(num_nodes)))
 
             # graph_index = torch.cat((graph_index, batch.batch+step))
             #graph_index = torch.cat((graph_index, batch.batch+ torch.LongTensor(list(range(batch.batch.shape[0]))) ))
@@ -336,14 +373,22 @@ class PreprocessPrompt:
             #print(graph_index)
             #input()
             # exit(0)
-
-            tmp_graph_nodes = data.x.shape[0]
             
-            if tmp_graph_nodes > max_size:
-                max_size = tmp_graph_nodes
+            if num_nodes > max_size:
+                max_size = num_nodes
         # add the partitioned subgraphs labels
         self.dataset.data.subgraph = graph_index
         self.dataset.slices["subgraph"] = self.dataset.slices["x"]
+
+        self.dataset.data.edge_index = edge_index
+        self.dataset.data.edge_attr = edge_attr
+
+        self.dataset.data.prompt_mask = prompt_mask
+        self.dataset.slices["prompt_mask"] = self.dataset.slices["x"]
+        self.dataset.data.x = x
+
+        #print(self.dataset.__dict__)
+        #exit(0)
         # exit(0)
         return max_size
 

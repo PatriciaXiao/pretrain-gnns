@@ -75,6 +75,9 @@ class GCNConv(MessagePassing):
         edge_weight = torch.ones((edge_index.size(1), ), dtype=dtype,
                                      device=edge_index.device)
         row, col = edge_index
+        print(row)
+        print(col)
+        exit(0)
         deg = scatter_add(edge_weight, row, dim=0, dim_size=num_nodes)
         deg_inv_sqrt = deg.pow(-0.5)
         deg_inv_sqrt[deg_inv_sqrt == float('inf')] = 0
@@ -246,10 +249,11 @@ class GNN(torch.nn.Module):
             #torch.nn.init.xavier_uniform_(self.prompt_embed.weight.data)
             torch.nn.init.zeros_(self.prompt_embed.weight.data)
         elif self.stru_prompting and not self.feat_prompting:
-            self.node_prompt_num = 1 #1
+            self.node_prompt_num = 2 #1
             self.prompt_embed = torch.nn.Embedding(self.node_prompt_num, emb_dim) # single virtual node
             torch.nn.init.xavier_uniform_(self.prompt_embed.weight.data)
             
+            """
             ### List of MLPs to transform virtual node at every layer
             self.mlp_virtualnode_list = torch.nn.ModuleList()
             #for layer in range(self.node_prompt_num):#range(num_layer - 1): # prompt specific
@@ -260,6 +264,8 @@ class GNN(torch.nn.Module):
             #self.mlp_softmax_list = torch.nn.ModuleList()
             #for layer in range(self.node_prompt_num):#range(num_layer - 1): # prompt specific
             #    self.mlp_softmax_list.append(torch.nn.Sequential(torch.nn.Linear(emb_dim, 1), torch.nn.BatchNorm1d(1), torch.nn.ReLU()))
+
+            """
 
         #elif self.stru_prompting and self.feat_prompting:
         #    assert False, "not implemented"
@@ -288,17 +294,22 @@ class GNN(torch.nn.Module):
 
     #def forward(self, x, edge_index, edge_attr):
     def forward(self, *argv):
-        if len(argv) == 5:
-            x, edge_index, edge_attr, batch, subgraph = argv[0], argv[1], argv[2], argv[3], argv[4]
+        if len(argv) == 6:
+            x, edge_index, edge_attr, batch, subgraph, promt_mask = argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]
         elif len(argv) == 1:
             data = argv[0]
-            x, edge_index, edge_attr, batch, subgraph = data.x, data.edge_index, data.edge_attr, data.batch, data.subgraph
+            x, edge_index, edge_attr, batch, subgraph, promt_mask = data.x, data.edge_index, data.edge_attr, data.batch, data.subgraph, data.prompt_mask
         else:
             raise ValueError("unmatched number of arguments.")
         #print(subgraph)
         #print(self.prompt_embed.weight)
         #input()
         #exit(0)
+
+        #print(x[:,0][promt_mask])
+        #print(promt_mask)
+
+        prompt_index = x[:,0]
 
         x = self.x_embedding1(x[:,0]) + self.x_embedding2(x[:,1]) # the combination of two embedding parts makes the final embedding
         if self.feat_prompting and not self.stru_prompting:
@@ -307,9 +318,15 @@ class GNN(torch.nn.Module):
         elif self.node_prompt_num > 0:
             ### virtual node embeddings for graphs
             #virtualnode_embedding = self.prompt_embed(torch.zeros(x.shape[0]).to(edge_index.dtype).to(x.device))
-
             # virtualnode_embedding = self.prompt_embed(torch.zeros(batch[-1].item() + 1).to(edge_index.dtype).to(edge_index.device))
             
+            #print(prompt_index[promt_mask])
+            #print(x[promt_mask].shape, promt_mask[promt_mask==True].shape)
+            x[promt_mask] = self.prompt_embed(prompt_index[promt_mask])
+            #print("next challenge: merge the two embeddings together")
+            #exit(0)
+
+            """
             virtualnode_embedding = self.prompt_embed(torch.arange(self.node_prompt_num).repeat(batch[-1].item() + 1, 1).to(edge_index.dtype).to(edge_index.device))
             all_embeddings = list()
             for i in range(self.node_prompt_num):
@@ -319,8 +336,9 @@ class GNN(torch.nn.Module):
             #exit(0)
             #print(virtualnode_embedding.shape)
             #exit(0)
+            """
 
-        #"""
+        """
         h_list = [x]
         for layer in range(self.num_layer):
 
@@ -350,15 +368,13 @@ class GNN(torch.nn.Module):
 
                     all_embeddings[i] = (1-s) * global_mean_pool(h, batch) + s * all_embeddings[i]
 
-                    """
                     # sample code of applying softmax
-                    from torch_geometric.utils import softmax
-                    score = softmax(h[:,0], batch)
-                    print(score)
-                    print(batch)
-                    print(global_add_pool(score, batch)) # correct
-                    exit(0)
-                    """
+                    #from torch_geometric.utils import softmax
+                    #score = softmax(h[:,0], batch)
+                    #print(score)
+                    #print(batch)
+                    #print(global_add_pool(score, batch)) # correct
+                    #exit(0)
 
                     ### transform virtual nodes using MLP
                     # residual? virtualnode_embedding + 
@@ -366,10 +382,10 @@ class GNN(torch.nn.Module):
         #"""
 
 
-        """
+        #"""
         h_list = [x]
         for layer in range(self.num_layer):
-            h = self.gnns[layer](h_list[layer], edge_index, edge_attr) + virtualnode_embedding
+            h = self.gnns[layer](h_list[layer], edge_index, edge_attr) #+ virtualnode_embedding
             h = self.batch_norms[layer](h)
             #h = F.dropout(F.relu(h), self.drop_ratio, training = self.training)
             if layer == self.num_layer - 1:
@@ -378,7 +394,7 @@ class GNN(torch.nn.Module):
             else:
                 h = F.dropout(F.relu(h), self.drop_ratio, training = self.training)
             h_list.append(h)
-        """
+        #"""
         
 
         """
@@ -577,17 +593,17 @@ class GNN_graphpred(torch.nn.Module):
         # print(self.gnn.prompt_embed(torch.LongTensor([0.])))
         #print(self.gnn.x_embedding1(torch.LongTensor([0.])))
         #input()
-        if len(argv) == 5:
-            x, edge_index, edge_attr, batch, subgraph = argv[0], argv[1], argv[2], argv[3], argv[4]
+        if len(argv) == 6:
+            x, edge_index, edge_attr, batch, subgraph, promt_mask = argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]
         elif len(argv) == 1:
             data = argv[0]
-            x, edge_index, edge_attr, batch, subgraph = data.x, data.edge_index, data.edge_attr, data.batch, data.subgraph
+            x, edge_index, edge_attr, batch, subgraph, promt_mask = data.x, data.edge_index, data.edge_attr, data.batch, data.subgraph, data.prompt_mask
         else:
             raise ValueError("unmatched number of arguments.")
         # print(x.shape) # torch.Size([513, 2])
         # exit(0)
 
-        node_representation = self.gnn(x, edge_index, edge_attr, batch, subgraph)
+        node_representation = self.gnn(x, edge_index, edge_attr, batch, subgraph, promt_mask)
 
         # print(node_representation.shape) # torch.Size([513, 300])
 

@@ -42,7 +42,7 @@ def train(args, model, device, loader, optimizer):
         batch = batch.to(device)
         # print(batch.__dict__)
 
-        pred = model(batch.x, batch.edge_index, batch.edge_attr, batch.batch, batch.subgraph)
+        pred = model(batch.x, batch.edge_index, batch.edge_attr, batch.batch, batch.subgraph, batch.prompt_mask)
 
         # """
         y = batch.y.view(pred.shape).to(torch.float64)
@@ -90,7 +90,7 @@ def eval(args, model, device, loader):
         batch = batch.to(device)
 
         with torch.no_grad():
-            pred = model(batch.x, batch.edge_index, batch.edge_attr, batch.batch, batch.subgraph)
+            pred = model(batch.x, batch.edge_index, batch.edge_attr, batch.batch, batch.subgraph, batch.prompt_mask)
 
         # """
         y_true.append(batch.y.view(pred.shape))
@@ -127,7 +127,7 @@ def main():
     parser = argparse.ArgumentParser(description='PyTorch implementation of fine-tuning of graph neural networks')
     parser.add_argument('--device', type=int, default=0,
                         help='which gpu to use if any (default: 0)')
-    parser.add_argument('--batch_size', type=int, default=32,
+    parser.add_argument('-bs', '--batch_size', type=int, default=32,
                         help='input batch size for training (default: 32)')
     parser.add_argument('-e', '--epochs', type=int, default=10,
                         help='number of epochs to train (default: 100 if use linear pred, 10 if hard-coded mapping)')
@@ -203,8 +203,12 @@ def main():
 
     pre_processor = PreprocessPrompt(dataset, args.num_workers)
     max_nodes = pre_processor.process()
+
+    #print(dataset.slices["edge_index"])
+    #print(dataset.slices["edge_attr"])
+
     #print(max_nodes)
-    #exit(0)
+    #dexit(0)
     
     if args.split == "scaffold":
         smiles_list = pd.read_csv('dataset/' + args.dataset + '/processed/smiles.csv', header=None)[0].tolist()
